@@ -85,6 +85,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
 
     /* Navigator interface methods */
     public void goTo(Time time, boolean animate) {
+        time.updateJalali(this);
         TextView title = (TextView) findViewById(R.id.title);
         title.setText(Utils.formatMonthYear(time));
 
@@ -92,6 +93,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
         current.dismissPopup();
 
         Time currentTime = current.getTime();
+        currentTime.updateJalali(this);
 
         // Compute a month number that is monotonically increasing for any
         // two adjacent months.
@@ -120,7 +122,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
     }
 
     public void goToToday() {
-        Time now = new Time();
+        Time now = new Time(this);
         now.set(System.currentTimeMillis());
         now.minute = 0;
         now.second = 0;
@@ -213,7 +215,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
             time = Utils.timeFromIntentInMillis(getIntent());
         }
 
-        mTime = new Time();
+        mTime = new Time(this);
         mTime.set(time);
         mTime.normalize(true);
 
