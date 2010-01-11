@@ -32,6 +32,7 @@ import android.preference.PreferenceManager;
 import android.provider.Calendar.Events;
 import android.text.format.DateUtils;
 import android.text.format.Time;
+import android.text.format.Jalali;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -63,6 +64,8 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
     private int mStartDay;
 
     private ProgressBar mProgressBar;
+    
+    private boolean mJalali;
 
     protected void startProgressSpinner() {
         // start the progress spinner
@@ -215,12 +218,18 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
             time = Utils.timeFromIntentInMillis(getIntent());
         }
 
+        mJalali = Jalali.isJalali(this);
+
         mTime = new Time(this);
         mTime.set(time);
         mTime.normalize(true);
 
         // Get first day of week based on locale and populate the day headers
-        mStartDay = Calendar.getInstance().getFirstDayOfWeek();
+        if (mJalali) {
+        	mStartDay = Calendar.SATURDAY;
+        } else {
+        	mStartDay = Calendar.getInstance().getFirstDayOfWeek();
+        }
         int diff = mStartDay - Calendar.SUNDAY - 1;
 
         String dayString = DateUtils.getDayOfWeekString((Calendar.SUNDAY + diff) % 7 + 1,

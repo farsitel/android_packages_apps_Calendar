@@ -196,6 +196,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     private int mMonthOtherMonthDayNumberColor;
     private int mMonthDayNumberColor;
     private int mMonthTodayNumberColor;
+    
+    private boolean mJalali;
+    private JalaliDate mJalaliDate;
+    private JalaliDate mJalaliToday;
+    private Time mViewJalaliCalendar;
+    private Time mJalaliTime;
 
     public MonthView(MonthActivity activity, Navigator navigator) {
         super(activity);
@@ -223,6 +229,9 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         mEventGeometry = new EventGeometry();
         mEventGeometry.setMinEventHeight(1.0f);
         mEventGeometry.setHourGap(HOUR_GAP);
+        
+        mJalali = Jalali.isJalali(activity);
+        
         init(activity);
     }
 
@@ -239,8 +248,23 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         mFirstJulianDay = Time.getJulianDay(millis, mViewCalendar.gmtoff);
         mViewCalendar.set(now);
 
-        mCursor = new DayOfMonthCursor(mViewCalendar.year,  mViewCalendar.month,
-                mViewCalendar.monthDay, mParentActivity.getStartDay());
+        if (mJalali) {
+        	Time todayTime = new Time();
+        	todayTime.set(System.currentTimeMillis());
+        	mJalaliToday = Jalali.gregorianToJalali(todayTime);
+        	mJalaliDate = Jalali.gregorianToJalali(todayTime);
+        	mJalaliDate.day = 1;
+        	mViewJalaliCalendar = Jalali.jalaliToGregorianTime(mJalaliDate);
+        	mJalaliTime = Jalali.jalaliToGregorianTime(mJalaliDate);
+        }
+
+        if (mJalali) {
+        	mCursor = new DayOfMonthCursor(mViewJalaliCalendar.year,  mViewJalaliCalendar.month,
+        			mViewJalaliCalendar.monthDay, mParentActivity.getStartDay(), mJalali);
+        } else {
+        	mCursor = new DayOfMonthCursor(mViewCalendar.year,  mViewCalendar.month,
+        			mViewCalendar.monthDay, mParentActivity.getStartDay(), mJalali);
+        }
         mToday = new Time();
         mToday.set(System.currentTimeMillis());
 
@@ -297,13 +321,23 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
                 // Switch to a different month
                 Time time = mOtherViewCalendar;
-                time.set(mViewCalendar);
-                if (velocityY < 0) {
-                    time.month += 1;
+                if (mJalali) {
+            		JalaliDate jalaliTemp = Jalali.gregorianToJalali(mViewJalaliCalendar);
+	                if (velocityY < 0) {
+                		jalaliTemp.increaseMonth(1);
+	                } else {
+                		jalaliTemp.decreaseMonth(1);
+	                }
+            		time = Jalali.jalaliToGregorianTime(jalaliTemp);
                 } else {
-                    time.month -= 1;
+	                time.set(mViewCalendar);
+	                if (velocityY < 0) {
+                		time.month += 1;
+	                } else {
+	                    time.month -= 1;
+	                }
+	                time.normalize(true);
                 }
-                time.normalize(true);
                 mParentActivity.goTo(time, true);
 
                 return true;
@@ -447,14 +481,18 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     void reloadEvents() {
         // Get the date for the beginning of the month
         Time monthStart = mTempTime;
-        monthStart.set(mViewCalendar);
+        if (mJalali) {
+        	monthStart.set(mViewJalaliCalendar);
+        } else {
+        	monthStart.set(mViewCalendar);
+        }
         monthStart.monthDay = 1;
         monthStart.hour = 0;
         monthStart.minute = 0;
         monthStart.second = 0;
         long millis = monthStart.normalize(true /* ignore isDst */);
         int startDay = Time.getJulianDay(millis, monthStart.gmtoff);
-
+        
         // Load the busy-bits in the background
         mParentActivity.startProgressSpinner();
         final long startMillis;
@@ -587,7 +625,11 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         DayOfMonthCursor c = mCursor;
         Time time = mTempTime;
-        time.set(mViewCalendar);
+        if (mJalali) {
+        	time.set(mViewJalaliCalendar);
+        } else {
+        	time.set(mViewCalendar);
+        }
 
         // Compute the day number from the row and column.  If the row and
         // column are in a different month from the current one, then the
@@ -679,10 +721,17 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         boolean withinCurrentMonth = mCursor.isWithinCurrentMonth(row, column);
         boolean isToday = false;
-        int dayOfBox = mCursor.getDayAt(row, column);
-        if (dayOfBox == mToday.monthDay && mCursor.getYear() == mToday.year
-                && mCursor.getMonth() == mToday.month) {
-            isToday = true;
+        if (mJalali) {
+	        JalaliDate jDayOfBox = Jalali.gregorianToJalali(mCursor.getYear(), mCursor.getMonth() + 1, mCursor.getDayAt(row, column));
+	        if (jDayOfBox.year == mJalaliToday.year && jDayOfBox.month == mJalaliToday.month && jDayOfBox.day == mJalaliToday.day) {
+	            isToday = true;
+	        }
+        } else {
+	        int dayOfBox = mCursor.getDayAt(row, column);
+	        if (dayOfBox == mToday.monthDay && mCursor.getYear() == mToday.year
+	                && mCursor.getMonth() == mToday.month) {
+	            isToday = true;
+	        }
         }
 
         int y = WEEK_GAP + row*(WEEK_GAP + mCellHeight);
@@ -816,7 +865,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         int right = r.right - BUSYBIT_WIDTH - BUSYBIT_RIGHT_MARGIN;
         int textX = r.left + (right - r.left) / 2; // center of text
         int textY = r.bottom - BUSYBIT_TOP_BOTTOM_MARGIN - 2; // bottom of text
-        canvas.drawText(String.valueOf(mCursor.getDayAt(row, column)), textX, textY, p);
+       	canvas.drawText(String.valueOf(mCursor.getDayAt(row, column, mJalali)), textX, textY, p);
     }
 
     /**
@@ -1002,9 +1051,16 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         long millis = mViewCalendar.normalize(true /* ignore DST */);
         mFirstJulianDay = Time.getJulianDay(millis, mViewCalendar.gmtoff);
         mViewCalendar.set(time);
+        
+        if (mJalali) {
+        	mJalaliDate = Jalali.gregorianToJalali(time);
+        	mJalaliDate.day = 1;
+        	mViewJalaliCalendar = Jalali.jalaliToGregorianTime(mJalaliDate);
+        	time = Jalali.jalaliToGregorianTime(mJalaliDate);
+        }
 
         mCursor = new DayOfMonthCursor(time.year, time.month, time.monthDay,
-                mCursor.getWeekStartDay());
+                mCursor.getWeekStartDay(), mJalali);
 
         mRedrawScreen = true;
         invalidate();
@@ -1012,7 +1068,11 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
     public long getSelectedTimeInMillis() {
         Time time = mTempTime;
-        time.set(mViewCalendar);
+        if (mJalali) {
+        	time.set(mViewJalaliCalendar);
+        } else {
+        	time.set(mViewCalendar);
+        }
 
         time.month += mCursor.getSelectedMonthOffset();
         time.monthDay = mCursor.getSelectedDayOfMonth();
@@ -1026,6 +1086,9 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     }
 
     Time getTime() {
+    	if (mJalali) {
+    		return mViewJalaliCalendar;
+    	}
         return mViewCalendar;
     }
 
