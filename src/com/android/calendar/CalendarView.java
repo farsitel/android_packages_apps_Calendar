@@ -45,6 +45,8 @@ import android.provider.Calendar.Events;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
+import android.text.format.Jalali;
+import android.text.format.JalaliDate;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -311,6 +313,11 @@ public class CalendarView extends View
     private String mDateRange;
     private TextView mTitleTextView;
 
+    private boolean mJalali;
+    private int mJalaliMonthLength;
+    private JalaliDate mJalaliDate;
+    private int mJalaliFirstDate;
+    
     public CalendarView(CalendarActivity activity) {
         super(activity);
         if (mScale == 0) {
@@ -342,6 +349,8 @@ public class CalendarView extends View
         mParentActivity = activity;
         mCalendarApp = (CalendarApplication) mParentActivity.getApplication();
         mDeleteEventHelper = new DeleteEventHelper(activity, false /* don't exit when done */);
+        
+        mJalali = Jalali.isJalali(activity);
 
         init(activity);
     }
@@ -355,13 +364,17 @@ public class CalendarView extends View
         setClickable(true);
         setOnCreateContextMenuListener(this);
 
-        mStartDay = Calendar.getInstance().getFirstDayOfWeek();
-        if (mStartDay == Calendar.SATURDAY) {
-            mStartDay = Time.SATURDAY;
-        } else if (mStartDay == Calendar.MONDAY) {
-            mStartDay = Time.MONDAY;
+        if (mJalali) {
+        	mStartDay = Time.SATURDAY;
         } else {
-            mStartDay = Time.SUNDAY;
+	        mStartDay = Calendar.getInstance().getFirstDayOfWeek();
+	        if (mStartDay == Calendar.SATURDAY) {
+	            mStartDay = Time.SATURDAY;
+	        } else if (mStartDay == Calendar.MONDAY) {
+	            mStartDay = Time.MONDAY;
+	        } else {
+	            mStartDay = Time.SUNDAY;
+	        }
         }
 
         mWeek_weekendColor = mResources.getColor(R.color.week_weekend);
@@ -570,7 +583,7 @@ public class CalendarView extends View
                 mBaseDate.normalize(true /* ignore isDst */);
             }
         }
-
+        
         final long start = mBaseDate.toMillis(false /* use isDst */);
         long end = start;
         mFirstJulianDay = Time.getJulianDay(start, mBaseDate.gmtoff);
@@ -578,6 +591,12 @@ public class CalendarView extends View
 
         mMonthLength = mBaseDate.getActualMaximum(Time.MONTH_DAY);
         mFirstDate = mBaseDate.monthDay;
+        
+        if (mJalali) {
+            mJalaliDate = Jalali.gregorianToJalali(mBaseDate);
+            mJalaliMonthLength = Jalali.getMaxMonthDay(mJalaliDate.year, mJalaliDate.month);
+            mJalaliFirstDate = mJalaliDate.day;
+        }
 
         int flags = DateUtils.FORMAT_SHOW_YEAR;
         if (DateFormat.is24HourFormat(mContext)) {
@@ -1444,10 +1463,15 @@ public class CalendarView extends View
         float xCenter = x + mCellWidth / 2.0f;
 
         boolean isWeekend = false;
-        if ((mStartDay == Time.SUNDAY && (day == 0 || day == 6))
-                || (mStartDay == Time.MONDAY && (day == 5 || day == 6))
-                || (mStartDay == Time.SATURDAY && (day == 0 || day == 1))) {
-            isWeekend = true;
+        if (mJalali) {
+        	if (day == 6)
+        		isWeekend = true;
+        } else {
+	        if ((mStartDay == Time.SUNDAY && (day == 0 || day == 6))
+	                || (mStartDay == Time.MONDAY && (day == 5 || day == 6))
+	                || (mStartDay == Time.SATURDAY && (day == 0 || day == 1))) {
+	            isWeekend = true;
+	        }
         }
 
         if (isWeekend) {
@@ -1459,6 +1483,13 @@ public class CalendarView extends View
         int dateNum = mFirstDate + day;
         if (dateNum > mMonthLength) {
             dateNum -= mMonthLength;
+        }
+        
+        if (mJalali) {
+        	dateNum = mJalaliFirstDate + day;
+        	if (dateNum > mJalaliMonthLength) {
+        		dateNum -= mJalaliMonthLength;
+        	}
         }
 
         String dateNumStr;
