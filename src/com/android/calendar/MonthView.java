@@ -201,7 +201,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     private JalaliDate mJalaliDate;
     private JalaliDate mJalaliToday;
     private Time mViewJalaliCalendar;
-    private Time mJalaliTime;
+    private int mJalaliFirstJulianDay;
 
     public MonthView(MonthActivity activity, Navigator navigator) {
         super(activity);
@@ -250,12 +250,14 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         if (mJalali) {
         	Time todayTime = new Time();
-        	todayTime.set(System.currentTimeMillis());
-        	mJalaliToday = Jalali.gregorianToJalali(todayTime);
-        	mJalaliDate = Jalali.gregorianToJalali(todayTime);
+        	todayTime.set(now);
+        	mJalaliToday = Jalali.gregorianToJalali(mViewCalendar);
+        	mJalaliDate = new JalaliDate(mJalaliToday);
         	mJalaliDate.day = 1;
         	mViewJalaliCalendar = Jalali.jalaliToGregorianTime(mJalaliDate);
-        	mJalaliTime = Jalali.jalaliToGregorianTime(mJalaliDate);
+            millis = mViewJalaliCalendar.normalize(true);
+            mJalaliFirstJulianDay = Time.getJulianDay(millis, mViewJalaliCalendar.gmtoff);
+            mViewJalaliCalendar.set(now);
         }
 
         if (mJalali) {
@@ -328,7 +330,8 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 	                } else {
                 		jalaliTemp.decreaseMonth(1);
 	                }
-            		time = Jalali.jalaliToGregorianTime(jalaliTemp);
+            		time.set(Jalali.jalaliToGregorianTime(jalaliTemp));
+            		time.normalize(true);
                 } else {
 	                time.set(mViewCalendar);
 	                if (velocityY < 0) {
@@ -481,17 +484,26 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     void reloadEvents() {
         // Get the date for the beginning of the month
         Time monthStart = mTempTime;
+        long millis;
+        int startDay;
         if (mJalali) {
-        	monthStart.set(mViewJalaliCalendar);
+        	JalaliDate tempJalali = Jalali.gregorianToJalali(mViewJalaliCalendar);
+        	tempJalali.day = 1;
+        	monthStart.set(Jalali.jalaliToGregorianTime(tempJalali));
+            monthStart.hour = 0;
+            monthStart.minute = 0;
+            monthStart.second = 0;
+        	millis = monthStart.normalize(true);
+        	startDay = Time.getJulianDay(millis, monthStart.gmtoff);
         } else {
         	monthStart.set(mViewCalendar);
+            monthStart.monthDay = 1;
+            monthStart.hour = 0;
+            monthStart.minute = 0;
+            monthStart.second = 0;
+            millis = monthStart.normalize(true /* ignore isDst */);
+        	startDay = Time.getJulianDay(millis, monthStart.gmtoff);
         }
-        monthStart.monthDay = 1;
-        monthStart.hour = 0;
-        monthStart.minute = 0;
-        monthStart.second = 0;
-        long millis = monthStart.normalize(true /* ignore isDst */);
-        int startDay = Time.getJulianDay(millis, monthStart.gmtoff);
         
         // Load the busy-bits in the background
         mParentActivity.startProgressSpinner();
@@ -577,7 +589,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         int columnDay1 = mCursor.getColumnOf(1);
 
         // Get the Julian day for the date at row 0, column 0.
-        int day = mFirstJulianDay - columnDay1;
+        int day;
+        if (mJalali) {
+        	day = mJalaliFirstJulianDay - columnDay1;
+        } else {
+        	day = mFirstJulianDay - columnDay1;
+        }
 
         int weekNum = 0;
         Calendar calendar = null;
@@ -598,7 +615,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             if (mShowWeekNumbers) {
                 weekNum += 1;
                 if (weekNum >= 53) {
-                    boolean inCurrentMonth = (day - mFirstJulianDay < 31);
+                    boolean inCurrentMonth;
+                    if (mJalali) {
+                    	inCurrentMonth = (day - mJalaliFirstJulianDay < 31);
+                    } else {
+                    	inCurrentMonth = (day - mFirstJulianDay < 31);
+                    }
                     weekNum = getWeekOfYear(row + 1, 0, inCurrentMonth, calendar);
                 }
             }
@@ -636,7 +658,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         // monthDay might be negative or it might be greater than the number
         // of days in this month, but that is okay because the normalize()
         // method will adjust the month (and year) if necessary.
-        time.monthDay = 7 * row + column - c.getOffset() + 1;
+        if (mJalali) {
+        	Time tempTime = Jalali.jalaliToGregorianTime(c.getJalaliDateAt(row, column));
+        	time.set(tempTime);
+        } else {
+        	time.monthDay = 7 * row + column - c.getOffset() + 1;
+        }
         return time.normalize(true);
     }
 
@@ -722,7 +749,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         boolean withinCurrentMonth = mCursor.isWithinCurrentMonth(row, column);
         boolean isToday = false;
         if (mJalali) {
-	        JalaliDate jDayOfBox = Jalali.gregorianToJalali(mCursor.getYear(), mCursor.getMonth() + 1, mCursor.getDayAt(row, column));
+        	JalaliDate jDayOfBox = mCursor.getJalaliDateAt(row, column);
 	        if (jDayOfBox.year == mJalaliToday.year && jDayOfBox.month == mJalaliToday.month && jDayOfBox.day == mJalaliToday.day) {
 	            isToday = true;
 	        }
@@ -978,7 +1005,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         int left = right - BUSYBIT_WIDTH;
 
         // Display the busy bits.  Draw a rectangle for each run of 1-bits.
-        int day = date - mFirstJulianDay;
+        int day = mJalali ? date - mJalaliFirstJulianDay : date - mFirstJulianDay;
         byte[] busyBits = mBusyBits[day];
         int lastIndex = busyBits.length - 1;
 
@@ -1056,7 +1083,9 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         	mJalaliDate = Jalali.gregorianToJalali(time);
         	mJalaliDate.day = 1;
         	mViewJalaliCalendar = Jalali.jalaliToGregorianTime(mJalaliDate);
-        	time = Jalali.jalaliToGregorianTime(mJalaliDate);
+            millis = mViewJalaliCalendar.normalize(true /* ignore DST */);
+            mJalaliFirstJulianDay = Time.getJulianDay(millis, mViewJalaliCalendar.gmtoff);
+            mViewJalaliCalendar.set(time);
         }
 
         mCursor = new DayOfMonthCursor(time.year, time.month, time.monthDay,
@@ -1070,12 +1099,18 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         Time time = mTempTime;
         if (mJalali) {
         	time.set(mViewJalaliCalendar);
+        	JalaliDate tempJalali = Jalali.gregorianToJalali(mViewJalaliCalendar);
+        	tempJalali.increaseMonth(mCursor.getSelectedMonthOffset());
+        	tempJalali.day = mCursor.getSelectedDayOfMonth();
+        	Time tempTime = Jalali.jalaliToGregorianTime(tempJalali);
+        	time.year = tempTime.year;
+        	time.month = tempTime.month;
+        	time.monthDay = tempTime.monthDay;
         } else {
         	time.set(mViewCalendar);
+            time.month += mCursor.getSelectedMonthOffset();
+            time.monthDay = mCursor.getSelectedDayOfMonth();
         }
-
-        time.month += mCursor.getSelectedMonthOffset();
-        time.monthDay = mCursor.getSelectedDayOfMonth();
 
         // Restore the saved hour:minute:second offset from when we entered
         // this view.
