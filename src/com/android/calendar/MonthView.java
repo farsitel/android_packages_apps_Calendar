@@ -56,6 +56,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class MonthView extends View implements View.OnCreateContextMenuListener {
 
@@ -202,6 +203,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     private JalaliDate mJalaliToday;
     private Time mViewJalaliCalendar;
     private int mJalaliFirstJulianDay;
+    private boolean mPersianDigits;
 
     public MonthView(MonthActivity activity, Navigator navigator) {
         super(activity);
@@ -231,6 +233,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         mEventGeometry.setHourGap(HOUR_GAP);
         
         mJalali = Jalali.isJalali(activity);
+        mPersianDigits = "fa".equals(Locale.getDefault().getLanguage());
         
         init(activity);
     }
@@ -892,7 +895,10 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         int right = r.right - BUSYBIT_WIDTH - BUSYBIT_RIGHT_MARGIN;
         int textX = r.left + (right - r.left) / 2; // center of text
         int textY = r.bottom - BUSYBIT_TOP_BOTTOM_MARGIN - 2; // bottom of text
-       	canvas.drawText(String.valueOf(mCursor.getDayAt(row, column, mJalali)), textX, textY, p);
+        if (mPersianDigits)
+        	canvas.drawText(Jalali.persianDigits(String.valueOf(mCursor.getDayAt(row, column, mJalali))), textX, textY, p);
+        else
+        	canvas.drawText(String.valueOf(mCursor.getDayAt(row, column, mJalali)), textX, textY, p);
     }
 
     /**

@@ -66,6 +66,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -317,6 +318,7 @@ public class CalendarView extends View
     private int mJalaliMonthLength;
     private JalaliDate mJalaliDate;
     private int mJalaliFirstDate;
+    private boolean mPersianDigits;
     
     public CalendarView(CalendarActivity activity) {
         super(activity);
@@ -351,6 +353,7 @@ public class CalendarView extends View
         mDeleteEventHelper = new DeleteEventHelper(activity, false /* don't exit when done */);
         
         mJalali = Jalali.isJalali(activity);
+        mPersianDigits = "fa".equals(Locale.getDefault().getLanguage());
 
         init(activity);
     }
@@ -449,6 +452,9 @@ public class CalendarView extends View
         p.setTypeface(null);
         mIs24HourFormat = DateFormat.is24HourFormat(context);
         mHourStrs = mIs24HourFormat ? CalendarData.s24Hours : CalendarData.s12HoursNoAmPm;
+        if (mPersianDigits)
+        	for (int i = 0; i < mHourStrs.length; i++)
+        		mHourStrs[i] = Jalali.persianDigits(mHourStrs[i]);
         mHoursWidth = computeMaxStringWidth(0, mHourStrs, p);
 
         mAmString = DateUtils.getAMPMString(Calendar.AM);
@@ -1511,6 +1517,8 @@ public class CalendarView extends View
                     R.string.weekday_day, dateStr, dateNumStr);
         }
         dateStr = dayHeaders[day].dateString;
+        if (mPersianDigits)
+        	dateStr = Jalali.persianDigits(dateStr);
 
         float y = mBannerPlusMargin - 7;
         canvas.drawText(dateStr, xCenter, y, p);
