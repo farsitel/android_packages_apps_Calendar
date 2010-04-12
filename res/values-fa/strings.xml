@@ -86,13 +86,13 @@
     <skip />
     <!-- This is a label on a context menu item. Pressing this menu item displays the
          Agenda view. -->
-    <string name="show_agenda_view">"Show agenda"</string>
+    <string name="show_agenda_view">"نمایش برنامهٔ روزانه"</string>
     <!-- This is a label on a context menu item. Pressing this menu item displays the
          Day view. -->
     <string name="show_day_view">"نمایش روز"</string>
     <!-- This is a label on a menu item. Pressing this menu item displays the
          Agenda view. -->
-    <string name="agenda_view">"Agenda"</string>
+    <string name="agenda_view">"برنامهٔ روزانه"</string>
     <!-- This is a label on a menu item. Pressing this menu item displays the
          Day view. -->
     <string name="day_view">"روز"</string>
