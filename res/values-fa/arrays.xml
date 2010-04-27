@@ -34,24 +34,7 @@
         <item>۲ روز</item>
         <item>۱ هفته</item>
     </string-array>
-    
-    <string-array name="reminder_minutes_values" translatable="false">
-        <item>"5"</item>
-        <item>"10"</item>
-        <item>"15"</item>
-        <item>"20"</item>
-        <item>"25"</item>
-        <item>"30"</item>
-        <item>"45"</item>
-        <item>"60"</item>
-        <item>"120"</item>
-        <item>"180"</item>
-        <item>"720"</item>
-        <item>"1440"</item>
-        <item>"2880"</item>
-        <item>"10080"</item>
-    </string-array>
-    
+
     <string-array name="preferences_default_reminder_labels">
         <item>هیچکدام</item>
         <item>۵ دقیقه</item>
@@ -69,37 +52,13 @@
         <item>۲ روز</item>
         <item>۱ روز</item>
     </string-array>
-    
-    <string-array name="preferences_default_reminder_values" translatable="false">
-        <item>"0"</item>
-        <item>"5"</item>
-        <item>"10"</item>
-        <item>"15"</item>
-        <item>"20"</item>
-        <item>"25"</item>
-        <item>"30"</item>
-        <item>"45"</item>
-        <item>"60"</item>
-        <item>"120"</item>
-        <item>"180"</item>
-        <item>"720"</item>
-        <item>"1440"</item>
-        <item>"2880"</item>
-        <item>"10080"</item>
-    </string-array>
-    
+
     <string-array name="preferences_alert_type_labels">
         <item>هشدار</item>
         <item>اطلاع نوار وضعیت</item>
         <item>خاموش</item>
     </string-array>
-    
-    <string-array name="preferences_alert_type_values" translatable="false">
-        <item>"0"</item>
-        <item>"1"</item>
-        <item>"2"</item>
-    </string-array>
-    
+
     <string-array name="availability">
         <item>مشغول</item>
         <item>آزاد</item>

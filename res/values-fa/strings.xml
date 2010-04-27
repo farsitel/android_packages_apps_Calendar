@@ -351,8 +351,6 @@
     <!-- The title of a popup dialog that lets the user choose how
          reminder notifications should occur. -->
     <string name="preferences_alerts_type_dialog">یادآورها و اطلاع‌ها</string>
-    <!-- DO NOT TRANSLATE -->
-    <string name="preferences_alerts_type_default">1</string>
     <!-- Settings check box label that specifies whether the phone should vibrate -->
     <string name="preferences_alerts_vibrate_title">لرزش</string>
     <!-- Title of ringtone selector dialog -->
