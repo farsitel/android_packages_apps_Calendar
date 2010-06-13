@@ -368,12 +368,18 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
                     col = 6;
                 }
 
+                int mirroredCol;
+                if (mRTL)
+                	mirroredCol = 6 - col;
+                else
+                	mirroredCol = col;
+
                 // Launch the Day/Agenda view when the finger lifts up,
                 // unless the finger moves before lifting up.
                 mLaunchDayView = true;
 
                 // Highlight the selected day.
-                mCursor.setSelectedRowColumn(row, col);
+                mCursor.setSelectedRowColumn(row, mirroredCol);
                 mSelectionMode = SELECTION_PRESSED;
                 mRedrawScreen = true;
                 invalidate();
@@ -647,6 +653,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         if (column > 6) {
             column = 6;
         }
+        
+        int mirroredColumn;
+        if (mRTL)
+        	mirroredColumn = 6 - column;
+        else
+        	mirroredColumn = column;
 
         DayOfMonthCursor c = mCursor;
         Time time = mTempTime;
@@ -662,10 +674,10 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         // of days in this month, but that is okay because the normalize()
         // method will adjust the month (and year) if necessary.
         if (mJalali) {
-        	Time tempTime = Jalali.jalaliToGregorianTime(c.getJalaliDateAt(row, column));
+        	Time tempTime = Jalali.jalaliToGregorianTime(c.getJalaliDateAt(row, mirroredColumn));
         	time.set(tempTime);
         } else {
-        	time.monthDay = 7 * row + column - c.getOffset() + 1;
+        	time.monthDay = 7 * row + mirroredColumn - c.getOffset() + 1;
         }
         return time.normalize(true);
     }
@@ -764,8 +776,14 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 	        }
         }
 
+        int mirroredColumn;
+        if (mRTL)
+        	mirroredColumn = 6 - column;
+        else
+        	mirroredColumn = column;
+        
         int y = WEEK_GAP + row*(WEEK_GAP + mCellHeight);
-        int x = mBorder + column*(MONTH_DAY_GAP + mCellWidth);
+        int x = mBorder + mirroredColumn*(MONTH_DAY_GAP + mCellWidth);
 
         r.left = x;
         r.top = y;
@@ -775,9 +793,9 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         // Adjust the left column, right column, and bottom row to leave
         // no border.
-        if (column == 0) {
+        if (mirroredColumn == 0) {
             r.left = -1;
-        } else if (column == 6) {
+        } else if (mirroredColumn == 6) {
             r.right += mBorder + 2;
         }
 
@@ -792,7 +810,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             // Adjust cell boundaries to compensate for the different border
             // style.
             r.top--;
-            if (column != 0) {
+            if (mirroredColumn != 0) {
                 r.left--;
             }
         } else if (drawSelection) {
@@ -836,7 +854,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         }
 
         // Draw week number
-        if (mShowWeekNumbers && column == 0) {
+        if (mShowWeekNumbers && mirroredColumn == 0) {
             // Draw the banner
             p.setStyle(Paint.Style.FILL);
             p.setColor(mMonthWeekBannerColor);

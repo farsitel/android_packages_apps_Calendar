@@ -985,22 +985,40 @@ public class CalendarView extends View
             }
             return super.onKeyDown(keyCode, event);
         case KeyEvent.KEYCODE_DPAD_LEFT:
-            if (mSelectedEvent != null) {
-                mSelectedEvent = mSelectedEvent.nextLeft;
-            }
-            if (mSelectedEvent == null) {
-                selectionDay -= 1;
-            }
+        	if (mRTL) {
+	            if (mSelectedEvent != null) {
+	                mSelectedEvent = mSelectedEvent.nextRight;
+	            }
+	            if (mSelectedEvent == null) {
+	                selectionDay += 1;
+	            }
+        	} else {
+	            if (mSelectedEvent != null) {
+	                mSelectedEvent = mSelectedEvent.nextLeft;
+	            }
+	            if (mSelectedEvent == null) {
+	                selectionDay -= 1;
+	            }
+        	}
             redraw = true;
             break;
 
         case KeyEvent.KEYCODE_DPAD_RIGHT:
-            if (mSelectedEvent != null) {
-                mSelectedEvent = mSelectedEvent.nextRight;
-            }
-            if (mSelectedEvent == null) {
-                selectionDay += 1;
-            }
+        	if (mRTL) {
+	            if (mSelectedEvent != null) {
+	                mSelectedEvent = mSelectedEvent.nextLeft;
+	            }
+	            if (mSelectedEvent == null) {
+	                selectionDay -= 1;
+	            }
+        	} else {
+	            if (mSelectedEvent != null) {
+	                mSelectedEvent = mSelectedEvent.nextRight;
+	            }
+	            if (mSelectedEvent == null) {
+	                selectionDay += 1;
+	            }
+        	}
             redraw = true;
             break;
 
@@ -1313,8 +1331,13 @@ public class CalendarView extends View
         p.setColor(mCalendarHourBackground);
         r.top = mBannerPlusMargin;
         r.bottom = r.top + mAllDayHeight + ALLDAY_TOP_MARGIN;
-        r.left = 0;
-        r.right = mHoursWidth;
+        if (mRTL) { // it's upper-right corner in RTL
+	        r.left = mViewWidth - mHoursWidth;
+	        r.right = mViewWidth;
+        } else {
+	        r.left = 0;
+	        r.right = mHoursWidth;
+        }
         canvas.drawRect(r, p);
     }
 
@@ -1325,11 +1348,21 @@ public class CalendarView extends View
         r.bottom = mBannerPlusMargin;
         r.left = 0;
         r.right = mHoursWidth + mNumDays * (mCellWidth + DAY_GAP);
+        if (mRTL) {
+        	int gap = mViewWidth - r.right;
+        	r.left += gap;
+        	r.right += gap;
+        }
         canvas.drawRect(r, p);
 
         // Fill the extra space on the right side with the default background
-        r.left = r.right;
-        r.right = mViewWidth;
+        if (mRTL) {
+        	r.left = 0;
+        	r.right = mViewWidth - r.right;
+        } else {
+            r.left = r.right;
+            r.right = mViewWidth;
+        }
         p.setColor(mCalendarGridAreaBackground);
         canvas.drawRect(r, p);
 
@@ -1341,8 +1374,13 @@ public class CalendarView extends View
                 r.top = 0;
                 r.bottom = mBannerPlusMargin;
                 int daynum = mSelectionDay - mFirstJulianDay;
-                r.left = mHoursWidth + daynum * (mCellWidth + DAY_GAP);
-                r.right = r.left + mCellWidth;
+                if (mRTL) {
+                	r.right = mViewWidth - (mHoursWidth + daynum * (mCellWidth + DAY_GAP)) + DAY_GAP;
+                	r.left = r.right - mCellWidth;
+                } else {
+	                r.left = mHoursWidth + daynum * (mCellWidth + DAY_GAP);
+	                r.right = r.left + mCellWidth;
+                }
                 canvas.drawRect(r, p);
             }
         }
@@ -1362,9 +1400,17 @@ public class CalendarView extends View
 
         p.setTypeface(mBold);
         p.setAntiAlias(true);
-        for (int day = 0; day < mNumDays; day++, cell++) {
-            drawDayHeader(dayNames[day + mStartDay], day, cell, x, canvas, p);
-            x += deltaX;
+        if (mRTL) {
+        	x = mViewWidth - mHoursWidth - deltaX;
+	        for (int day = 0; day < mNumDays; day++, cell++) {
+	            drawDayHeader(dayNames[day + mStartDay], day, cell, x, canvas, p);
+	            x -= deltaX;
+	        }
+        } else {
+	        for (int day = 0; day < mNumDays; day++, cell++) {
+	            drawDayHeader(dayNames[day + mStartDay], day, cell, x, canvas, p);
+	            x += deltaX;
+	        }
         }
     }
 
@@ -1399,12 +1445,21 @@ public class CalendarView extends View
         drawHours(r, canvas, p);
 
         // Draw each day
-        int x = mHoursWidth;
+        int x;
         int deltaX = mCellWidth + DAY_GAP;
         int cell = mFirstJulianDay;
-        for (int day = 0; day < mNumDays; day++, cell++) {
-            drawEvents(cell, x, HOUR_GAP, canvas, p);
-            x += deltaX;
+        if (mRTL) {
+        	x = mViewWidth - mHoursWidth - mCellWidth + DAY_GAP;
+        	for (int day = 0; day < mNumDays; day++, cell++) {
+	            drawEvents(cell, x, HOUR_GAP, canvas, p);
+	            x -= deltaX;
+	        }
+        } else {
+        	x = mHoursWidth;
+        	for (int day = 0; day < mNumDays; day++, cell++) {
+	            drawEvents(cell, x, HOUR_GAP, canvas, p);
+	            x += deltaX;
+	        }
         }
     }
 
@@ -1413,8 +1468,13 @@ public class CalendarView extends View
         p.setColor(mCalendarHourBackground);
         r.top = 0;
         r.bottom = 24 * (mCellHeight + HOUR_GAP) + HOUR_GAP;
-        r.left = 0;
-        r.right = mHoursWidth;
+        if (mRTL) {
+	        r.left = mViewWidth - mHoursWidth;
+	        r.right = mViewWidth;
+        } else {
+	        r.left = 0;
+	        r.right = mHoursWidth;
+        }
         canvas.drawRect(r, p);
 
         // Fill the bottom left corner with the default grid background
@@ -1428,15 +1488,25 @@ public class CalendarView extends View
             p.setColor(mCalendarHourSelected);
             r.top = mSelectionHour * (mCellHeight + HOUR_GAP);
             r.bottom = r.top + mCellHeight + 2 * HOUR_GAP;
-            r.left = 0;
-            r.right = mHoursWidth;
+            if (mRTL) {
+    	        r.left = mViewWidth - mHoursWidth;
+    	        r.right = mViewWidth;
+            } else {
+    	        r.left = 0;
+    	        r.right = mHoursWidth;
+            }
             canvas.drawRect(r, p);
 
             // Also draw the highlight on the grid
             p.setColor(mCalendarGridAreaSelected);
             int daynum = mSelectionDay - mFirstJulianDay;
-            r.left = mHoursWidth + daynum * (mCellWidth + DAY_GAP);
-            r.right = r.left + mCellWidth;
+            if (mRTL) {
+            	r.right = mViewWidth - (mHoursWidth + daynum * (mCellWidth + DAY_GAP)) + DAY_GAP;
+	            r.left = r.right - mCellWidth;
+            } else {
+	            r.left = mHoursWidth + daynum * (mCellWidth + DAY_GAP);
+	            r.right = r.left + mCellWidth;
+            }
             canvas.drawRect(r, p);
 
             // Draw a border around the highlighted grid hour.
@@ -1455,7 +1525,11 @@ public class CalendarView extends View
         p.setTextAlign(Paint.Align.RIGHT);
         p.setAntiAlias(true);
 
-        int right = mHoursWidth - HOURS_RIGHT_MARGIN;
+        int right;
+        if (mRTL)
+        	right = mViewWidth - HOURS_RIGHT_MARGIN;
+        else
+        	right = mHoursWidth - HOURS_RIGHT_MARGIN;
         int y = HOUR_GAP + mHoursTextHeight;
 
         for (int i = 0; i < 24; i++) {
@@ -1500,7 +1574,7 @@ public class CalendarView extends View
 
         String dateNumStr;
         // Add a leading zero if the date is a single digit
-        if (dateNum < 10) {
+        if (!mPersianDigits && (dateNum < 10)) {
             dateNumStr = "0" + dateNum;
         } else {
             dateNumStr = String.valueOf(dateNum);
@@ -1540,8 +1614,15 @@ public class CalendarView extends View
         p.setStyle(Style.STROKE);
         p.setStrokeWidth(0);
         p.setAntiAlias(false);
-        float startX = mHoursWidth;
-        float stopX = mHoursWidth + (mCellWidth + DAY_GAP) * mNumDays;
+        float startX;
+        float stopX;
+        if (mRTL) {
+	        stopX = mViewWidth - mHoursWidth;
+	        startX = mViewWidth - (mHoursWidth + (mCellWidth + DAY_GAP) * mNumDays);
+        } else {
+	        startX = mHoursWidth;
+	        stopX = mHoursWidth + (mCellWidth + DAY_GAP) * mNumDays;
+        }
         float y = 0;
         float deltaY = mCellHeight + HOUR_GAP;
         for (int hour = 0; hour <= 24; hour++) {
@@ -1554,10 +1635,19 @@ public class CalendarView extends View
         float startY = 0;
         float stopY = HOUR_GAP + 24 * (mCellHeight + HOUR_GAP);
         float deltaX = mCellWidth + DAY_GAP;
-        float x = mHoursWidth + mCellWidth;
-        for (int day = 0; day < mNumDays; day++) {
-            canvas.drawLine(x, startY, x, stopY, p);
-            x += deltaX;
+        float x; 
+        if (mRTL) {
+        	x = mViewWidth - (mHoursWidth + mCellWidth);
+	        for (int day = 0; day < mNumDays; day++) {
+	            canvas.drawLine(x, startY, x, stopY, p);
+	            x -= deltaX;
+	        }
+        } else {
+        	x = mHoursWidth + mCellWidth;
+	        for (int day = 0; day < mNumDays; day++) {
+	            canvas.drawLine(x, startY, x, stopY, p);
+	            x += deltaX;
+	        }
         }
 
         // Restore the saved style.
@@ -1636,14 +1726,24 @@ public class CalendarView extends View
         // Draw the background for the all-day events area
         r.top = mBannerPlusMargin;
         r.bottom = r.top + mAllDayHeight + ALLDAY_TOP_MARGIN;
-        r.left = mHoursWidth;
-        r.right = r.left + mNumDays * (mCellWidth + DAY_GAP);
+        if (mRTL) {
+	        r.left = mViewWidth - (r.left + mNumDays * (mCellWidth + DAY_GAP));
+	        r.right = mViewWidth - mHoursWidth;
+        } else {
+	        r.left = mHoursWidth;
+	        r.right = r.left + mNumDays * (mCellWidth + DAY_GAP);
+        }
         p.setColor(mCalendarAllDayBackground);
         canvas.drawRect(r, p);
 
         // Fill the extra space on the right side with the default background
-        r.left = r.right;
-        r.right = mViewWidth;
+        if (mRTL) {
+	        r.right = r.left;
+	        r.left = 0;
+        } else {
+	        r.left = r.right;
+	        r.right = mViewWidth;
+        }
         p.setColor(mCalendarGridAreaBackground);
         canvas.drawRect(r, p);
 
@@ -1655,16 +1755,26 @@ public class CalendarView extends View
         float startY = r.top;
         float stopY = r.bottom;
         float deltaX = mCellWidth + DAY_GAP;
-        float x = mHoursWidth + mCellWidth;
-        for (int day = 0; day <= mNumDays; day++) {
-            canvas.drawLine(x, startY, x, stopY, p);
-            x += deltaX;
+        float x;
+        if (mRTL) {
+	        x = mViewWidth - (mHoursWidth + mCellWidth);
+	        for (int day = 0; day <= mNumDays; day++) {
+	            canvas.drawLine(x, startY, x, stopY, p);
+	            x -= deltaX;
+	        }
+        } else {
+	        x = mHoursWidth + mCellWidth;
+	        for (int day = 0; day <= mNumDays; day++) {
+	            canvas.drawLine(x, startY, x, stopY, p);
+	            x += deltaX;
+	        }
         }
         p.setAntiAlias(true);
         p.setStyle(Style.FILL);
 
         int y = mBannerPlusMargin + ALLDAY_TOP_MARGIN;
         float left = mHoursWidth;
+        float right = mViewWidth - mHoursWidth;
         int lastDay = firstDay + numDays - 1;
         ArrayList<Event> events = mEvents;
         int numEvents = events.size();
@@ -1693,8 +1803,13 @@ public class CalendarView extends View
 
             // Leave a one-pixel space between the vertical day lines and the
             // event rectangle.
-            event.left = left + startIndex * (mCellWidth + DAY_GAP) + 2;
-            event.right = left + endIndex * (mCellWidth + DAY_GAP) + mCellWidth - 1;
+            if (mRTL) {
+	            event.left = right - (endIndex * (mCellWidth + DAY_GAP) + mCellWidth) + 2;
+	            event.right = right - (startIndex * (mCellWidth + DAY_GAP)) - 1;
+            } else {
+	            event.left = left + startIndex * (mCellWidth + DAY_GAP) + 2;
+	            event.right = left + endIndex * (mCellWidth + DAY_GAP) + mCellWidth - 1;
+            }
             event.top = y + height * event.getColumn();
 
             // Multiply the height by 0.9 to leave a little gap between events
@@ -1725,8 +1840,13 @@ public class CalendarView extends View
             float top = mBannerPlusMargin + 1;
             float bottom = top + mAllDayHeight + ALLDAY_TOP_MARGIN - 1;
             int daynum = mSelectionDay - mFirstJulianDay;
-            left = mHoursWidth + daynum * (mCellWidth + DAY_GAP) + 1;
-            float right = left + mCellWidth + DAY_GAP - 1;
+            if (mRTL) {
+	            right = mViewWidth - (mHoursWidth + daynum * (mCellWidth + DAY_GAP));
+	            left = right - (mCellWidth + DAY_GAP);
+            } else {
+	            left = mHoursWidth + daynum * (mCellWidth + DAY_GAP) + 1;
+	            right = left + mCellWidth + DAY_GAP - 1;
+            }
             if (mNumDays == 1) {
                 // The Day view doesn't have a vertical line on the right.
                 right -= 1;
@@ -2433,7 +2553,7 @@ public class CalendarView extends View
         // errors.  Also, we don't need floats, we can use ints.
         int distanceX = (int) e1.getX() - (int) e2.getX();
         int distanceY = (int) e1.getY() - (int) e2.getY();
-
+        
         // If we haven't figured out the predominant scroll direction yet,
         // then do it now.
         if (mTouchMode == TOUCH_MODE_DOWN) {
@@ -2448,7 +2568,7 @@ public class CalendarView extends View
             if (absDistanceX >= 2 * absDistanceY) {
                 mTouchMode = TOUCH_MODE_HSCROLL;
                 mViewStartX = distanceX;
-                initNextView(-mViewStartX);
+                initNextView(mViewStartX);
             } else {
                 mTouchMode = TOUCH_MODE_VSCROLL;
             }
@@ -2521,6 +2641,8 @@ public class CalendarView extends View
             boolean switchForward = initNextView(deltaX);
             CalendarView view = mParentActivity.getNextView();
             mTitleTextView.setText(view.mDateRange);
+            if (mRTL)
+            	switchForward = !switchForward;
             mParentActivity.switchViews(switchForward, mViewStartX, mViewWidth);
             mViewStartX = 0;
             return;
@@ -2533,6 +2655,9 @@ public class CalendarView extends View
 
     private boolean initNextView(int deltaX) {
         // Change the view to the previous day or week
+        if (mRTL)
+        	deltaX = -deltaX;
+
         CalendarView view = mParentActivity.getNextView();
         Time date = view.mBaseDate;
         date.set(mBaseDate);
@@ -2848,6 +2973,8 @@ public class CalendarView extends View
             return false;
         }
 
+        if (mRTL)
+        	x = mViewWidth - x;
         int day = (x - mHoursWidth) / (mCellWidth + DAY_GAP);
         if (day >= mNumDays) {
             day = mNumDays - 1;
