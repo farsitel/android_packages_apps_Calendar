@@ -139,6 +139,12 @@ public class CalendarActivity extends Activity implements Navigator {
         super.onResume();
         mEventLoader.startBackgroundThread();
         eventsChanged();
+        CalendarView view = (CalendarView) mViewSwitcher.getCurrentView();
+        view.updateIs24HourFormat();
+        view.restartCurrentTimeUpdates();
+
+        view = (CalendarView) mViewSwitcher.getNextView();
+        view.updateIs24HourFormat();
 
         // Register for Intent broadcasts
         IntentFilter filter = new IntentFilter();

@@ -17,6 +17,7 @@
 package com.android.calendar;
 
 import static android.provider.Calendar.EVENT_BEGIN_TIME;
+import dalvik.system.VMRuntime;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -33,7 +34,6 @@ import android.provider.Calendar.Events;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.format.Jalali;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,8 +44,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 import android.widget.Gallery.LayoutParams;
-
-import dalvik.system.VMRuntime;
 
 import java.util.Calendar;
 
@@ -67,6 +65,14 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
     
     private boolean mJalali;
 
+    private static final int DAY_OF_WEEK_LABEL_IDS[] = {
+        R.id.day0, R.id.day1, R.id.day2, R.id.day3, R.id.day4, R.id.day5, R.id.day6
+    };
+    private static final int DAY_OF_WEEK_KINDS[] = {
+        Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY,
+        Calendar.THURSDAY, Calendar.FRIDAY, Calendar.SATURDAY
+    };
+
     protected void startProgressSpinner() {
         // start the progress spinner
         mProgressBar.setVisibility(View.VISIBLE);
@@ -81,7 +87,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
     public View makeView() {
         MonthView mv = new MonthView(this, this);
         mv.setLayoutParams(new ViewSwitcher.LayoutParams(
-                LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         mv.setSelectedTime(mTime);
         return mv;
     }
@@ -90,7 +96,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
     public void goTo(Time time, boolean animate) {
         time.updateJalali(this);
         TextView title = (TextView) findViewById(R.id.title);
-        title.setText(Utils.formatMonthYear(time));
+        title.setText(Utils.formatMonthYear(this, time));
 
         MonthView current = (MonthView) mSwitcher.getCurrentView();
         current.dismissPopup();
@@ -132,7 +138,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
         now.normalize(false);
 
         TextView title = (TextView) findViewById(R.id.title);
-        title.setText(Utils.formatMonthYear(now));
+        title.setText(Utils.formatMonthYear(this, now));
         mTime = now;
 
         MonthView view = (MonthView) mSwitcher.getCurrentView();
@@ -231,32 +237,25 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
         	mStartDay = Calendar.getInstance().getFirstDayOfWeek();
         }
         int diff = mStartDay - Calendar.SUNDAY - 1;
+        final int startDay = Utils.getFirstDayOfWeek();
+        final int sundayColor = getResources().getColor(R.color.sunday_text_color);
+        final int saturdayColor = getResources().getColor(R.color.saturday_text_color);
 
-        String dayString = DateUtils.getDayOfWeekString((Calendar.SUNDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day0)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.MONDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day1)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.TUESDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day2)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.WEDNESDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day3)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.THURSDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day4)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.FRIDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day5)).setText(dayString);
-        dayString = DateUtils.getDayOfWeekString((Calendar.SATURDAY + diff) % 7 + 1,
-                DateUtils.LENGTH_MEDIUM);
-        ((TextView) findViewById(R.id.day6)).setText(dayString);
+        for (int day = 0; day < 7; day++) {
+            final String dayString = DateUtils.getDayOfWeekString(
+                    (DAY_OF_WEEK_KINDS[day] + diff) % 7 + 1, DateUtils.LENGTH_MEDIUM);
+            final TextView label = (TextView) findViewById(DAY_OF_WEEK_LABEL_IDS[day]);
+            label.setText(dayString);
+            if (Utils.isSunday(day, startDay)) {
+                label.setTextColor(sundayColor);
+            } else if (Utils.isSaturday(day, startDay)) {
+                label.setTextColor(saturdayColor);
+            }
+        }
 
         // Set the initial title
         TextView title = (TextView) findViewById(R.id.title);
-        title.setText(Utils.formatMonthYear(mTime));
+        title.setText(Utils.formatMonthYear(this, mTime));
 
         mEventLoader = new EventLoader(this);
         mProgressBar = (ProgressBar) findViewById(R.id.progress_circular);
@@ -311,7 +310,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
 
         MonthView view1 = (MonthView) mSwitcher.getCurrentView();
         MonthView view2 = (MonthView) mSwitcher.getNextView();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = CalendarPreferenceActivity.getSharedPreferences(this);
         String str = prefs.getString(CalendarPreferenceActivity.KEY_DETAILED_VIEW,
                 CalendarPreferenceActivity.DEFAULT_DETAILED_VIEW);
         view1.setDetailedView(str);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--  Copyright (C) 2006 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,18 +12,17 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
+ -->
+
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_label" msgid="5452708708398908131">"Kalender"</string>
-    <string name="calendar_plug" msgid="4861031284038774007"><font fgcolor="#ffffffff">"Välkommen till Google Kalender!"</font>" "\n"Med Googles verktyg för schemaläggning sköter du planeringen på ett enkelt, effektivt och lättillgängligt sätt."</string>
     <string name="what_label" msgid="1933578391985810049">"Vad"</string>
-    <string name="when_label" msgid="894636567327261599">"När"</string>
     <string name="where_label" msgid="3472482206065595118">"Var"</string>
     <string name="attendees_label" msgid="2971281641565729725">"Gäster"</string>
     <string name="response_label" msgid="5732943469653254290">"<xliff:g id="RESPONSE_TYPE">%s</xliff:g> (<xliff:g id="GUEST_COUNT">%d</xliff:g>)"</string>
     <string name="repeats_label" msgid="7414023871434593196">"Upprepning"</string>
-    <string name="no_title_label" msgid="7352118984125107858">"(Inget ämne)"</string>
+    <string name="no_title_label" msgid="302177118061368042">"(Ingen titel)"</string>
   <plurals name="Nminutes">
     <item quantity="one" msgid="4871052965772159239">"1 minut"</item>
     <item quantity="other" msgid="5644461630927544936">"<xliff:g id="COUNT">%d</xliff:g> minuter"</item>
@@ -51,24 +50,23 @@
     <string name="event_edit" msgid="4006961928830064662">"Redigera händelse"</string>
     <string name="event_delete" msgid="2386667193277770442">"Ta bort händelse"</string>
     <string name="goto_today" msgid="9162136434410891230">"Idag"</string>
-    <string name="menu_select_calendars" msgid="6610470242968973936">"Mina kalendrar"</string>
+    <string name="menu_select_calendars" msgid="6200145996783123958">"Kalendrar"</string>
     <string name="menu_preferences" msgid="9120238479503233925">"Inställningar"</string>
     <string name="plus_N_more" msgid="2527895721728080055">"(och <xliff:g id="MORE_COUNT">%d</xliff:g> till …)"</string>
-    <string name="calendars_title" msgid="4457305218812126946">"Mina kalendrar"</string>
-    <string name="add_calendars" msgid="1013326491414656517">"Lägg till kalendrar"</string>
-    <string name="remove_calendars" msgid="1395151808187126222">"Ta bort kalendrarna"</string>
+    <string name="calendars_title" msgid="4046980972626276968">"Kalendrar"</string>
+    <string name="synced_visible" msgid="1406744353749335651">"synkat, visas"</string>
+    <string name="synced_not_visible" msgid="54032655953110609">"synkat, visas inte"</string>
+    <string name="not_synced_not_visible" msgid="7178879061972059481">"inte synkat, visas inte"</string>
     <string name="event_edit_title" msgid="8487120407086532444">"Händelseinfo"</string>
     <string name="hint_what" msgid="709155115005044531">"Händelsens namn"</string>
     <string name="hint_where" msgid="3116239630502213241">"Plats för händelsen"</string>
     <string name="hint_description" msgid="4198202812240544553">"Beskrivning av händelse"</string>
     <string name="hint_attendees" msgid="6036653711383143333">"E-postadresser"</string>
-    <string name="creating_event" msgid="8237877638457604455">"Skapar händelse…"</string>
-    <string name="saving_event" msgid="8853425146353785688">"Sparar händelse…"</string>
+    <string name="creating_event" msgid="5252306542761552414">"Händelsen har skapats"</string>
+    <string name="saving_event" msgid="7716081507367732169">"Händelsen har sparats"</string>
     <string name="loading_calendars_title" msgid="3819254313413902272">"Läser in kalendrar"</string>
     <string name="loading_calendars_message" msgid="8266077515011438420">"Läser in kalendrar…"</string>
     <string name="alert_title" msgid="7869592820853066853">"Kalenderaviseringar"</string>
-    <string name="alert_when_label" msgid="106946701143025116">"När:"</string>
-    <string name="alert_where_label" msgid="4255965543493921820">"Var:"</string>
     <string name="alert_missed_events_single" msgid="8042891195314876684">"(<xliff:g id="REMINDER_COUNT">%s</xliff:g> annan påminnelse)"</string>
     <string name="alert_missed_events_multiple" msgid="8499734506511653919">"(<xliff:g id="REMINDER_COUNT">%s</xliff:g> andra påminnelser)"</string>
     <string name="event_info_title" msgid="56024222340421620">"Visa händelse"</string>
@@ -86,9 +84,9 @@
     <string name="reminders_label" msgid="8345054160145333166">"Påminnelser"</string>
     <string name="no_syncable_calendars" msgid="7019488867045436129">"Inga kalendrar"</string>
     <string name="no_calendars_found" msgid="755379468136462058">"Du har inga kalendrar."</string>
-    <string name="view_event_calendar_label" msgid="8503354404461986250">"Kalender"</string>
-    <string name="view_event_organizer_label" msgid="2168441329713325834">"Organisatör"</string>
-    <string name="view_event_timezone_label" msgid="6461351857281070935">"Lokal tidszon"</string>
+    <string name="view_event_calendar_label" msgid="6126231656338241140">"Kalender:"</string>
+    <string name="view_event_organizer_label" msgid="2753151795647402277">"Organisatör:"</string>
+    <string name="view_event_timezone_label" msgid="4757495486359041757">"Lokal tidszon:"</string>
     <string name="view_event_response_label" msgid="8382281658458798329">"Delta?"</string>
     <string name="agenda_today" msgid="6489447319363439068">"Idag, <xliff:g id="DATE">%1$s</xliff:g>"</string>
     <string name="loading" msgid="3772533493214331230">"Hämtar…"</string>
@@ -108,6 +106,8 @@
     <string name="every_weekday" msgid="5896574838353902978">"Varje vardag (mån-fre)"</string>
     <string name="weekly" msgid="2006107373119027114">"Varje vecka (varje <xliff:g id="DAYS_OF_WEEK">%s</xliff:g>)"</string>
     <string name="monthly_on_day_count" msgid="6847991854413461795">"Varje månad (den <xliff:g id="ORDINAL_NUMBER">%1$s</xliff:g> <xliff:g id="DAY_OF_WEEK">%2$s</xliff:g>en)"</string>
+    <string name="monthly" msgid="4587116285383048586">"Varje månad"</string>
+    <string name="yearly_plain" msgid="3652692085322162449">"Varje år"</string>
     <string name="monthly_on_day" msgid="5370155265278821156">"Varje månad (den <xliff:g id="DAY_OF_MONTH">%s</xliff:g>)"</string>
     <string name="yearly" msgid="8576208380302949002">"Varje år (den <xliff:g id="DATES">%s</xliff:g>)"</string>
     <string name="custom" msgid="3015205670911301856">"Anpassad… (går ej att anpassa i telefonen)"</string>
@@ -123,9 +123,18 @@
     <string name="preferences_hide_declined_title" msgid="1849295943669890034">"Dölj avböjda händelser"</string>
     <string name="preferences_alerts_type_title" msgid="6934441966757833908">"Ställ in varningar och aviseringar"</string>
     <string name="preferences_alerts_type_dialog" msgid="2195667763429994271">"Varningar och aviseringar"</string>
-    <string name="preferences_alerts_vibrate_title" msgid="7997122314759645350">"Vibrera"</string>
+    <string name="preferences_alerts_vibrateWhen_title" msgid="8731372580674292759">"Vibrera"</string>
+    <string name="preferences_alerts_vibrateWhen_summary" msgid="2809567649955441757">"Vibrera även vid påminnelser"</string>
     <string name="preferences_alerts_ringtone_title" msgid="7565118268120729644">"Välj ringsignal"</string>
     <string name="preferences_default_reminder_title" msgid="5188861433342733905">"Standardtid för påminnelse"</string>
     <string name="preferences_default_reminder_dialog" msgid="2490348857239323412">"Standardtid för påminnelse"</string>
     <string name="preferences_default_reminder_default" msgid="2903884416749959435">"10"</string>
+    <string name="preferences_about_title" msgid="2810624892412097879">"Om"</string>
+    <string name="preferences_build_version" msgid="8242471883413502068">"Programversion"</string>
+  <string-array name="prefEntries_alerts_vibrateWhen">
+    <item msgid="2539376794936035639">"Alltid"</item>
+    <item msgid="8091719131860840185">"Bara vid tyst"</item>
+    <item msgid="4552962311897985633">"Aldrig"</item>
+  </string-array>
+    <string name="prefDialogTitle_vibrateWhen" msgid="8995274609647451109">"Vibrera"</string>
 </resources>

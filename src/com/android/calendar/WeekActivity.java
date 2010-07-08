@@ -51,7 +51,7 @@ public class WeekActivity extends CalendarActivity implements ViewSwitcher.ViewF
         WeekView wv = new WeekView(this);
         wv.setId(VIEW_ID);
         wv.setLayoutParams(new ViewSwitcher.LayoutParams(
-                LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         wv.setSelectedDay(mSelectedDay);
         return wv;
     }
@@ -72,7 +72,7 @@ public class WeekActivity extends CalendarActivity implements ViewSwitcher.ViewF
 
         CalendarView view1 = (CalendarView) mViewSwitcher.getCurrentView();
         CalendarView view2 = (CalendarView) mViewSwitcher.getNextView();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = CalendarPreferenceActivity.getSharedPreferences(this);
 
         String str = prefs.getString(CalendarPreferenceActivity.KEY_DETAILED_VIEW,
                 CalendarPreferenceActivity.DEFAULT_DETAILED_VIEW);

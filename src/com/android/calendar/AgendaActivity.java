@@ -28,7 +28,6 @@ import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.provider.Calendar.Events;
 import android.text.format.Time;
 import android.util.Log;
@@ -81,7 +80,7 @@ public class AgendaActivity extends Activity implements Navigator {
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        
+
         // Eliminate extra GCs during startup by setting the initial heap size to 4MB.
         // TODO: We should restore the old heap size once the activity reaches the idle state
         VMRuntime.getRuntime().setMinimumHeapSize(INITIAL_HEAP_SIZE);
@@ -138,10 +137,10 @@ public class AgendaActivity extends Activity implements Navigator {
             Log.v(TAG, "OnResume to " + mTime.toString());
         }
 
-        SharedPreferences prefs =
-            PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        boolean hideDeclined = prefs
-                .getBoolean(CalendarPreferenceActivity.KEY_HIDE_DECLINED, false);
+        SharedPreferences prefs = CalendarPreferenceActivity.getSharedPreferences(
+                getApplicationContext());
+        boolean hideDeclined = prefs.getBoolean(
+                CalendarPreferenceActivity.KEY_HIDE_DECLINED, false);
 
         mAgendaListView.setHideDeclinedEvents(hideDeclined);
         mAgendaListView.goTo(mTime, true);
@@ -215,8 +214,8 @@ public class AgendaActivity extends Activity implements Navigator {
     /* Navigator interface methods */
     public void goToToday() {
         Time now = new Time();
-        now.set(System.currentTimeMillis());
-        goTo(now, true);
+        now.setToNow();
+        mAgendaListView.goTo(now, true); // Force refresh
     }
 
     public void goTo(Time time, boolean animate) {

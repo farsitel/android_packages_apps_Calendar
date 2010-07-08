@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--  Copyright (C) 2006 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,18 +12,17 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
+ -->
+
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_label" msgid="5452708708398908131">"Agenda"</string>
-    <string name="calendar_plug" msgid="4861031284038774007"><font fgcolor="#ffffffff">"Bienvenue dans Google Agenda !"</font>" "\n"La solution de Google pour gérer votre emploi du temps en planifiant vos événements de manière plus intuitive, efficace et directe."</string>
     <string name="what_label" msgid="1933578391985810049">"Objet"</string>
-    <string name="when_label" msgid="894636567327261599">"Date"</string>
     <string name="where_label" msgid="3472482206065595118">"Lieu"</string>
     <string name="attendees_label" msgid="2971281641565729725">"Invités"</string>
     <string name="response_label" msgid="5732943469653254290">"<xliff:g id="RESPONSE_TYPE">%s</xliff:g> (<xliff:g id="GUEST_COUNT">%d</xliff:g>)"</string>
     <string name="repeats_label" msgid="7414023871434593196">"Fréquence"</string>
-    <string name="no_title_label" msgid="7352118984125107858">"(Aucun objet)"</string>
+    <string name="no_title_label" msgid="302177118061368042">"(Sans titre)"</string>
   <plurals name="Nminutes">
     <item quantity="one" msgid="4871052965772159239">"1 minute"</item>
     <item quantity="other" msgid="5644461630927544936">"<xliff:g id="COUNT">%d</xliff:g> minutes"</item>
@@ -51,24 +50,23 @@
     <string name="event_edit" msgid="4006961928830064662">"Modifier l\'événement"</string>
     <string name="event_delete" msgid="2386667193277770442">"Supprimer l\'événement"</string>
     <string name="goto_today" msgid="9162136434410891230">"Aujourd\'hui"</string>
-    <string name="menu_select_calendars" msgid="6610470242968973936">"Mes agendas"</string>
+    <string name="menu_select_calendars" msgid="6200145996783123958">"Agendas"</string>
     <string name="menu_preferences" msgid="9120238479503233925">"Paramètres"</string>
     <string name="plus_N_more" msgid="2527895721728080055">"(et <xliff:g id="MORE_COUNT">%d</xliff:g> autres…)"</string>
-    <string name="calendars_title" msgid="4457305218812126946">"Mes agendas"</string>
-    <string name="add_calendars" msgid="1013326491414656517">"Ajouter des agendas"</string>
-    <string name="remove_calendars" msgid="1395151808187126222">"Supprimer des agendas"</string>
+    <string name="calendars_title" msgid="4046980972626276968">"Agendas"</string>
+    <string name="synced_visible" msgid="1406744353749335651">"synchronisé, visible"</string>
+    <string name="synced_not_visible" msgid="54032655953110609">"synchronisé, non visible"</string>
+    <string name="not_synced_not_visible" msgid="7178879061972059481">"non synchronisé, non visible"</string>
     <string name="event_edit_title" msgid="8487120407086532444">"Détails sur l\'événement"</string>
     <string name="hint_what" msgid="709155115005044531">"Nom de l\'événement"</string>
     <string name="hint_where" msgid="3116239630502213241">"Lieu de l\'événement"</string>
     <string name="hint_description" msgid="4198202812240544553">"Description de l\'événement"</string>
     <string name="hint_attendees" msgid="6036653711383143333">"Adresses e-mail"</string>
-    <string name="creating_event" msgid="8237877638457604455">"Création de l\'événement…"</string>
-    <string name="saving_event" msgid="8853425146353785688">"Enregistrement de l\'événement…"</string>
+    <string name="creating_event" msgid="5252306542761552414">"Événement créé"</string>
+    <string name="saving_event" msgid="7716081507367732169">"Événement enregistré"</string>
     <string name="loading_calendars_title" msgid="3819254313413902272">"Chargement des agendas"</string>
     <string name="loading_calendars_message" msgid="8266077515011438420">"Chargement des agendas..."</string>
     <string name="alert_title" msgid="7869592820853066853">"Notifications de l\'agenda"</string>
-    <string name="alert_when_label" msgid="106946701143025116">"Date :"</string>
-    <string name="alert_where_label" msgid="4255965543493921820">"Lieu :"</string>
     <string name="alert_missed_events_single" msgid="8042891195314876684">"(<xliff:g id="REMINDER_COUNT">%s</xliff:g> rappel supplémentaire)"</string>
     <string name="alert_missed_events_multiple" msgid="8499734506511653919">"(<xliff:g id="REMINDER_COUNT">%s</xliff:g> rappels supplémentaires)"</string>
     <string name="event_info_title" msgid="56024222340421620">"Afficher l\'événement"</string>
@@ -86,14 +84,14 @@
     <string name="reminders_label" msgid="8345054160145333166">"Rappels"</string>
     <string name="no_syncable_calendars" msgid="7019488867045436129">"Pas d\'agenda"</string>
     <string name="no_calendars_found" msgid="755379468136462058">"Vous n\'avez pas d\'agenda."</string>
-    <string name="view_event_calendar_label" msgid="8503354404461986250">"Agenda"</string>
-    <string name="view_event_organizer_label" msgid="2168441329713325834">"Organisateur"</string>
-    <string name="view_event_timezone_label" msgid="6461351857281070935">"Fuseau horaire local"</string>
+    <string name="view_event_calendar_label" msgid="6126231656338241140">"Agenda :"</string>
+    <string name="view_event_organizer_label" msgid="2753151795647402277">"Organisateur :"</string>
+    <string name="view_event_timezone_label" msgid="4757495486359041757">"Fuseau horaire local :"</string>
     <string name="view_event_response_label" msgid="8382281658458798329">"Participation ?"</string>
     <string name="agenda_today" msgid="6489447319363439068">"Aujourd\'hui, <xliff:g id="DATE">%1$s</xliff:g>"</string>
     <string name="loading" msgid="3772533493214331230">"Chargement…"</string>
-    <string name="show_older_events" msgid="4031960000704544741">"Affichage des événements depuis <xliff:g id="OLDEST_SEARCH_RANGE">%1$s</xliff:g>. Appuyez pour en consulter d\'autres."</string>
-    <string name="show_newer_events" msgid="2647889653936094369">"Affichage des événements jusqu\'à <xliff:g id="NEWEST_SEARCH_RANGE">%1$s</xliff:g>. Appuyez pour en consulter d\'autres."</string>
+    <string name="show_older_events" msgid="4031960000704544741">"Affichage des événements depuis le <xliff:g id="OLDEST_SEARCH_RANGE">%1$s</xliff:g>. Appuyez pour en consulter d\'autres."</string>
+    <string name="show_newer_events" msgid="2647889653936094369">"Affichage des événements jusqu\'au <xliff:g id="NEWEST_SEARCH_RANGE">%1$s</xliff:g>. Appuyez pour en consulter d\'autres."</string>
     <string name="num_events" msgid="3351672964607162257">"Nbre d\'événements"</string>
     <string name="edit_event_label" msgid="2900418236819088363">"Modifier l\'événement"</string>
     <string name="delete_label" msgid="874742811918030739">"Supprimer"</string>
@@ -108,6 +106,8 @@
     <string name="every_weekday" msgid="5896574838353902978">"Les jours ouvrables (lun–ven)"</string>
     <string name="weekly" msgid="2006107373119027114">"Hebdomadaire (chaque <xliff:g id="DAYS_OF_WEEK">%s</xliff:g>)"</string>
     <string name="monthly_on_day_count" msgid="6847991854413461795">"Mensuel (chaque <xliff:g id="ORDINAL_NUMBER">%1$s</xliff:g> <xliff:g id="DAY_OF_WEEK">%2$s</xliff:g>)"</string>
+    <string name="monthly" msgid="4587116285383048586">"Tous les mois"</string>
+    <string name="yearly_plain" msgid="3652692085322162449">"Tous les ans"</string>
     <string name="monthly_on_day" msgid="5370155265278821156">"Mensuel (le <xliff:g id="DAY_OF_MONTH">%s</xliff:g>)"</string>
     <string name="yearly" msgid="8576208380302949002">"Annuel (le <xliff:g id="DATES">%s</xliff:g>)"</string>
     <string name="custom" msgid="3015205670911301856">"Personnalisé… (non paramétrable sur téléphone)"</string>
@@ -123,9 +123,18 @@
     <string name="preferences_hide_declined_title" msgid="1849295943669890034">"Masquer évén. refusés"</string>
     <string name="preferences_alerts_type_title" msgid="6934441966757833908">"Alertes et notifications"</string>
     <string name="preferences_alerts_type_dialog" msgid="2195667763429994271">"Alertes et notifications"</string>
-    <string name="preferences_alerts_vibrate_title" msgid="7997122314759645350">"Vibreur"</string>
+    <string name="preferences_alerts_vibrateWhen_title" msgid="8731372580674292759">"Vibreur"</string>
+    <string name="preferences_alerts_vibrateWhen_summary" msgid="2809567649955441757">"Vibrer également pour les rappels"</string>
     <string name="preferences_alerts_ringtone_title" msgid="7565118268120729644">"Sonnerie"</string>
     <string name="preferences_default_reminder_title" msgid="5188861433342733905">"Rappel par défaut"</string>
     <string name="preferences_default_reminder_dialog" msgid="2490348857239323412">"Rappel par défaut"</string>
     <string name="preferences_default_reminder_default" msgid="2903884416749959435">"10"</string>
+    <string name="preferences_about_title" msgid="2810624892412097879">"À propos de"</string>
+    <string name="preferences_build_version" msgid="8242471883413502068">"Version"</string>
+  <string-array name="prefEntries_alerts_vibrateWhen">
+    <item msgid="2539376794936035639">"Toujours"</item>
+    <item msgid="8091719131860840185">"En mode silencieux"</item>
+    <item msgid="4552962311897985633">"Jamais"</item>
+  </string-array>
+    <string name="prefDialogTitle_vibrateWhen" msgid="8995274609647451109">"Vibreur"</string>
 </resources>

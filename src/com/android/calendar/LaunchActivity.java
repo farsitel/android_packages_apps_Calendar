@@ -18,30 +18,21 @@ package com.android.calendar;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.provider.Calendar.Calendars;
-import android.provider.Gmail;
-import android.util.Log;
-
-import com.google.android.googlelogin.GoogleLoginServiceConstants;
-
-import java.io.IOException;
-
-import java.util.TimeZone;
+import android.provider.Calendar;
+import android.provider.Settings;
 
 public class LaunchActivity extends Activity {
+    private static final String TAG = "LaunchActivity";
+
     static final String KEY_DETAIL_VIEW = "DETAIL_VIEW";
+    static final String KEY_VIEW_TYPE = "VIEW";
+    static final String VIEW_TYPE_DAY = "DAY";
+
     private Bundle mExtras;
 
     @Override
@@ -52,82 +43,46 @@ public class LaunchActivity extends Activity {
         // Our UI is not something intended for the user to see.  We just
         // stick around until we can figure out what to do next based on
         // the current state of the system.
-        // TODO: Removed until framework is fixed in b/2008662
+        // Removed because it causes draw problems when entering in landscape orientation
+        // TODO: Figure out draw problem. Original reason for removal due to b/2008662
         // setVisible(false);
 
         // Only try looking for an account if this is the first launch.
         if (icicle == null) {
-            // This will request a Gmail account and if none are present, it will
-            // invoke SetupWizard to login or create one. The result is returned
-            // via the Future2Callback.
-            Bundle bundle = new Bundle();
-            bundle.putCharSequence("optional_message", getText(R.string.calendar_plug));
-            AccountManager.get(this).getAuthTokenByFeatures(
-                    GoogleLoginServiceConstants.ACCOUNT_TYPE, Gmail.GMAIL_AUTH_SERVICE,
-                    new String[]{GoogleLoginServiceConstants.FEATURE_LEGACY_HOSTED_OR_GOOGLE}, this,
-                    bundle, null /* loginOptions */, new AccountManagerCallback<Bundle>() {
-                public void run(AccountManagerFuture<Bundle> future) {
-                    try {
-                        Bundle result = future.getResult();
-                        onAccountsLoaded(new Account(
-                                result.getString(GoogleLoginServiceConstants.AUTH_ACCOUNT_KEY),
-                                result.getString(AccountManager.KEY_ACCOUNT_TYPE)));
-                    } catch (OperationCanceledException e) {
-                        finish();
-                    } catch (IOException e) {
-                        finish();
-                    } catch (AuthenticatorException e) {
-                        Account account = maybeCreateLocalCalendar();
-                        onAccountsLoaded(account);
-                    }
-                }
-            }, null /* handler */);
-        }
-    }
-
-    private Account maybeCreateLocalCalendar() {
-        Account localAccount = new Account("nobody@localhost", "localhost");
-        // create a local calendar if there isn't one already
-        Cursor cur = getContentResolver().query(Calendars.CONTENT_URI,
-                null, null, null, null);
-        try {
-            if (cur.getCount() != 0) {
-                cur.moveToFirst();
-                try {
-                    String accountName =
-                        cur.getString(cur.getColumnIndexOrThrow(Calendars._SYNC_ACCOUNT));
-                    String accountType =
-                        cur.getString(cur.getColumnIndexOrThrow(Calendars._SYNC_ACCOUNT_TYPE));
-                    if (accountName == null) {
-                        return localAccount;
-                    } else {
-                        return new Account(accountName, accountType);
-                    }
-                } catch(RuntimeException e) {
-                    return null;
-                }
+            Account[] accounts = AccountManager.get(this).getAccounts();
+            if(accounts.length > 0) {
+                // If the only account is an account that can't use Calendar we let the user into
+                // Calendar, but they can't create any events until they add an account with a
+                // Calendar.
+                launchCalendarView();
             } else {
-                // inspired from CalendarProvider.onAccountsChanged
-                ContentValues vals = new ContentValues();
-                vals.put(Calendars.ACCESS_LEVEL, Integer.toString(Calendars.OWNER_ACCESS));
-                vals.put(Calendars.COLOR, -14069085);
-                vals.put(Calendars.DISPLAY_NAME, "Default");
-                vals.put(Calendars.HIDDEN, 0);
-                vals.put(Calendars.NAME, "Local");
-                vals.put(Calendars.SELECTED, 1);
-                vals.put(Calendars.SYNC_EVENTS, 1);
-                vals.put(Calendars._SYNC_ACCOUNT, localAccount.name);
-                vals.put(Calendars._SYNC_ACCOUNT_TYPE, localAccount.type);
-                vals.put(Calendars.TIMEZONE, TimeZone.getDefault().getID());
-                getContentResolver().insert(Calendars.CONTENT_URI, vals);
-                return localAccount;
+                // If we failed to find a valid Calendar, bounce the user to the account settings
+                // screen. Using the Calendar authority has the added benefit of only showing
+                // account types that use Calendar when you enter the add account screen from here.
+                final Intent intent = new Intent(Settings.ACTION_ADD_ACCOUNT);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+                intent.putExtra(Settings.EXTRA_AUTHORITIES, new String[] {
+                    Calendar.AUTHORITY
+                });
+                startActivityForResult(intent, 0);
             }
-        } finally {
-            cur.close();
         }
     }
 
-    private void onAccountsLoaded(Account account) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Account[] accounts = AccountManager.get(this).getAccounts();
+        if(accounts.length > 0) {
+            // If the only account is an account that can't use Calendar we let the user into
+            // Calendar, but they can't create any events until they add an account with a
+            // Calendar.
+            launchCalendarView();
+        } else {
+            finish();
+        }
+    }
+
+    private void launchCalendarView() {
         // Get the data for from this intent, if any
         Intent myIntent = getIntent();
         Uri myData = myIntent.getData();
@@ -143,13 +98,23 @@ public class LaunchActivity extends Activity {
             intent.putExtras(mExtras);
             if (mExtras.getBoolean(KEY_DETAIL_VIEW, false)) {
                 defaultViewKey = CalendarPreferenceActivity.KEY_DETAILED_VIEW;
+            } else if (VIEW_TYPE_DAY.equals(mExtras.getString(KEY_VIEW_TYPE))) {
+                defaultViewKey = VIEW_TYPE_DAY;
             }
         }
         intent.putExtras(myIntent);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String startActivity = prefs.getString(defaultViewKey,
-                CalendarPreferenceActivity.DEFAULT_START_VIEW);
+        SharedPreferences prefs = CalendarPreferenceActivity.getSharedPreferences(this);
+        String startActivity;
+        if (defaultViewKey.equals(VIEW_TYPE_DAY)) {
+            startActivity = CalendarApplication.ACTIVITY_NAMES[CalendarApplication.DAY_VIEW_ID];
+        } else if (defaultViewKey.equals(CalendarPreferenceActivity.KEY_DETAILED_VIEW)) {
+            startActivity = prefs.getString(defaultViewKey,
+                    CalendarPreferenceActivity.DEFAULT_DETAILED_VIEW);
+        } else {
+            startActivity = prefs.getString(defaultViewKey,
+                    CalendarPreferenceActivity.DEFAULT_START_VIEW);
+        }
 
         intent.setClassName(this, startActivity);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);

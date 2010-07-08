@@ -42,13 +42,13 @@ import android.os.Handler;
 import android.provider.Calendar.Attendees;
 import android.provider.Calendar.Calendars;
 import android.provider.Calendar.Events;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.format.Jalali;
 import android.text.format.JalaliDate;
 import android.text.FriBidi;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
@@ -79,8 +79,18 @@ public class CalendarView extends View
         implements View.OnCreateContextMenuListener, View.OnClickListener {
 
     private static float mScale = 0; // Used for supporting different screen densities
+    private static final long INVALID_EVENT_ID = -1; //This is used for remembering a null event
 
     private boolean mOnFlingCalled;
+    /**
+     * ID of the last event which was displayed with the toast popup.
+     *
+     * This is used to prevent popping up multiple quick views for the same event, especially
+     * during calendar syncs. This becomes valid when an event is selected, either by default
+     * on starting calendar or by scrolling to an event. It becomes invalid when the user
+     * explicitly scrolls to an empty time slot, changes views, or deletes the event.
+     */
+    private long mLastPopupEventID;
 
     protected CalendarApplication mCalendarApp;
     protected CalendarActivity mParentActivity;
@@ -109,6 +119,10 @@ public class CalendarView extends View
     private static final int FROM_LEFT = 4;
     private static final int FROM_RIGHT = 8;
 
+    private static final int ACCESS_LEVEL_NONE = 0;
+    private static final int ACCESS_LEVEL_DELETE = 1;
+    private static final int ACCESS_LEVEL_EDIT = 2;
+
     private static int HORIZONTAL_SCROLL_THRESHOLD = 50;
 
     private ContinueScroll mContinueScroll = new ContinueScroll();
@@ -119,9 +133,14 @@ public class CalendarView extends View
     }
 
     private DayHeader[] dayHeaders = new DayHeader[32];
-    
+
     // Make this visible within the package for more informative debugging
     Time mBaseDate;
+    private Time mCurrentTime;
+    //Update the current time line every five minutes if the window is left open that long
+    private static final int UPDATE_CURRENT_TIME_DELAY = 300000;
+    private UpdateCurrentTime mUpdateCurrentTime = new UpdateCurrentTime();
+    private int mTodayJulianDay;
 
     private Typeface mBold = Typeface.DEFAULT_BOLD;
     private int mFirstJulianDay;
@@ -190,16 +209,23 @@ public class CalendarView extends View
     private static int MAX_ALLDAY_HEIGHT = 72;
     private static int ALLDAY_TOP_MARGIN = 3;
     private static int MAX_ALLDAY_EVENT_HEIGHT = 18;
-    
+
     /* The extra space to leave above the text in all-day events */
     private static final int ALL_DAY_TEXT_TOP_MARGIN = 0;
-    
+
     /* The extra space to leave above the text in normal events */
     private static final int NORMAL_TEXT_TOP_MARGIN = 2;
 
     private static final int HOURS_LEFT_MARGIN = 2;
     private static final int HOURS_RIGHT_MARGIN = 4;
     private static final int HOURS_MARGIN = HOURS_LEFT_MARGIN + HOURS_RIGHT_MARGIN;
+
+    private static int CURRENT_TIME_LINE_HEIGHT = 2;
+    private static int CURRENT_TIME_LINE_BORDER_WIDTH = 1;
+    private static int CURRENT_TIME_MARKER_INNER_WIDTH = 6;
+    private static int CURRENT_TIME_MARKER_HEIGHT = 6;
+    private static int CURRENT_TIME_MARKER_WIDTH = 8;
+    private static int CURRENT_TIME_LINE_SIDE_BUFFER = 1;
 
     /* package */ static final int MINUTES_PER_HOUR = 60;
     /* package */ static final int MINUTES_PER_DAY = MINUTES_PER_HOUR * 24;
@@ -219,7 +245,8 @@ public class CalendarView extends View
     private static int mPressedColor;
     private static int mSelectedEventTextColor;
     private static int mEventTextColor;
-    private static int mWeek_weekendColor;
+    private static int mWeek_saturdayColor;
+    private static int mWeek_sundayColor;
     private static int mCalendarDateBannerTextColor;
     private static int mCalendarAllDayBackground;
     private static int mCalendarAmPmLabel;
@@ -232,6 +259,8 @@ public class CalendarView extends View
     private static int mCalendarHourBackground;
     private static int mCalendarHourLabel;
     private static int mCalendarHourSelected;
+    private static int mCurrentTimeMarkerColor;
+    private static int mCurrentTimeMarkerBorderColor;
 
     private int mViewStartX;
     private int mViewStartY;
@@ -339,7 +368,14 @@ public class CalendarView extends View
                 MIN_EVENT_HEIGHT *= mScale;
 
                 HORIZONTAL_SCROLL_THRESHOLD *= mScale;
- 
+
+                CURRENT_TIME_MARKER_HEIGHT *= mScale;
+                CURRENT_TIME_MARKER_WIDTH *= mScale;
+                CURRENT_TIME_LINE_HEIGHT *= mScale;
+                CURRENT_TIME_LINE_BORDER_WIDTH *= mScale;
+                CURRENT_TIME_MARKER_INNER_WIDTH *= mScale;
+                CURRENT_TIME_LINE_SIDE_BUFFER *= mScale;
+
                 SMALL_ROUND_RADIUS *= mScale;
             }
         }
@@ -353,6 +389,8 @@ public class CalendarView extends View
         mCalendarApp = (CalendarApplication) mParentActivity.getApplication();
         mDeleteEventHelper = new DeleteEventHelper(activity, false /* don't exit when done */);
         
+        mLastPopupEventID = INVALID_EVENT_ID;
+
         mJalali = Jalali.isJalali(activity);
         mPersianDigits = "fa".equals(Locale.getDefault().getLanguage());
 
@@ -368,20 +406,18 @@ public class CalendarView extends View
         setClickable(true);
         setOnCreateContextMenuListener(this);
 
-        if (mJalali) {
-        	mStartDay = Time.SATURDAY;
-        } else {
-	        mStartDay = Calendar.getInstance().getFirstDayOfWeek();
-	        if (mStartDay == Calendar.SATURDAY) {
-	            mStartDay = Time.SATURDAY;
-	        } else if (mStartDay == Calendar.MONDAY) {
-	            mStartDay = Time.MONDAY;
-	        } else {
-	            mStartDay = Time.SUNDAY;
-	        }
-        }
+        mStartDay = Utils.getFirstDayOfWeek();
 
-        mWeek_weekendColor = mResources.getColor(R.color.week_weekend);
+        mCurrentTime = new Time();
+        long currentTime = System.currentTimeMillis();
+        mCurrentTime.set(currentTime);
+        //The % makes it go off at the next increment of 5 minutes.
+        postDelayed(mUpdateCurrentTime,
+                UPDATE_CURRENT_TIME_DELAY - (currentTime % UPDATE_CURRENT_TIME_DELAY));
+        mTodayJulianDay = Time.getJulianDay(currentTime, mCurrentTime.gmtoff);
+
+        mWeek_saturdayColor = mResources.getColor(R.color.week_saturday);
+        mWeek_sundayColor = mResources.getColor(R.color.week_sunday);
         mCalendarDateBannerTextColor = mResources.getColor(R.color.calendar_date_banner_text_color);
         mCalendarAllDayBackground = mResources.getColor(R.color.calendar_all_day_background);
         mCalendarAmPmLabel = mResources.getColor(R.color.calendar_ampm_label);
@@ -398,6 +434,8 @@ public class CalendarView extends View
         mPressedColor = mResources.getColor(R.color.pressed);
         mSelectedEventTextColor = mResources.getColor(R.color.calendar_event_selected_text_color);
         mEventTextColor = mResources.getColor(R.color.calendar_event_text_color);
+        mCurrentTimeMarkerColor = mResources.getColor(R.color.current_time_marker);
+        mCurrentTimeMarkerBorderColor = mResources.getColor(R.color.current_time_marker_border);
         mEventTextPaint.setColor(mEventTextColor);
         mEventTextPaint.setTextSize(EVENT_TEXT_FONT_SIZE);
         mEventTextPaint.setTextAlign(Paint.Align.LEFT);
@@ -451,12 +489,7 @@ public class CalendarView extends View
 
         p.setTextSize(HOURS_FONT_SIZE);
         p.setTypeface(null);
-        mIs24HourFormat = DateFormat.is24HourFormat(context);
-        mHourStrs = mIs24HourFormat ? CalendarData.s24Hours : CalendarData.s12HoursNoAmPm;
-        if (mPersianDigits)
-        	for (int i = 0; i < mHourStrs.length; i++)
-        		mHourStrs[i] = Jalali.persianDigits(mHourStrs[i]);
-        mHoursWidth = computeMaxStringWidth(0, mHourStrs, p);
+        updateIs24HourFormat();
 
         mAmString = DateUtils.getAMPMString(Calendar.AM);
         mPmString = DateUtils.getAMPMString(Calendar.PM);
@@ -469,7 +502,7 @@ public class CalendarView extends View
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mPopupView = inflater.inflate(R.layout.bubble_event, null);
         mPopupView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.FILL_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         mPopup = new PopupWindow(context);
         mPopup.setContentView(mPopupView);
@@ -503,6 +536,15 @@ public class CalendarView extends View
             // jump to the "View event" screen.
             switchViews(true /* trackball */);
         }
+    }
+
+    public void updateIs24HourFormat() {
+        mIs24HourFormat = DateFormat.is24HourFormat(context);
+        mHourStrs = mIs24HourFormat ? CalendarData.s24Hours : CalendarData.s12HoursNoAmPm;
+        if (mPersianDigits)
+        	for (int i = 0; i < mHourStrs.length; i++)
+        		mHourStrs[i] = Jalali.persianDigits(mHourStrs[i]);
+        mHoursWidth = computeMaxStringWidth(0, mHourStrs, p);
     }
 
     /**
@@ -606,7 +648,7 @@ public class CalendarView extends View
         }
 
         int flags = DateUtils.FORMAT_SHOW_YEAR;
-        if (DateFormat.is24HourFormat(mContext)) {
+        if (DateFormat.is24HourFormat(mParentActivity)) {
             flags |= DateUtils.FORMAT_24HOUR;
         }
         if (mNumDays > 1) {
@@ -771,7 +813,10 @@ public class CalendarView extends View
         mViewStartY = mFirstHour * (mCellHeight + HOUR_GAP) - mFirstHourOffset;
 
         int eventAreaWidth = mNumDays * (mCellWidth + DAY_GAP);
-        mPopup.dismiss();
+        //When we get new events we don't want to dismiss the popup unless the event changes
+        if (mSelectedEvent != null && mLastPopupEventID != mSelectedEvent.id) {
+            mPopup.dismiss();
+        }
         mPopup.setWidth(eventAreaWidth - 20);
         mPopup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
     }
@@ -791,7 +836,7 @@ public class CalendarView extends View
         view.mFirstHour = mFirstHour;
         view.mFirstHourOffset = mFirstHourOffset;
         view.remeasure(getWidth(), getHeight());
-        
+
         view.mSelectedEvent = null;
         view.mPrevSelectedEvent = null;
         view.mStartDay = mStartDay;
@@ -819,6 +864,7 @@ public class CalendarView extends View
         Event selectedEvent = mSelectedEvent;
 
         mPopup.dismiss();
+        mLastPopupEventID = INVALID_EVENT_ID;
         if (mNumDays > 1) {
             // This is the Week view.
             // With touch, we always switch to Day/Agenda View
@@ -830,7 +876,7 @@ public class CalendarView extends View
                     long startMillis = getSelectedTimeInMillis();
                     long endMillis = startMillis + DateUtils.HOUR_IN_MILLIS;
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setClassName(mContext, EditEvent.class.getName());
+                    intent.setClassName(mParentActivity, EditEvent.class.getName());
                     intent.putExtra(EVENT_BEGIN_TIME, startMillis);
                     intent.putExtra(EVENT_END_TIME, endMillis);
                     mParentActivity.startActivity(intent);
@@ -840,7 +886,7 @@ public class CalendarView extends View
                     Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI,
                             selectedEvent.id);
                     intent.setData(eventUri);
-                    intent.setClassName(mContext, EventInfoActivity.class.getName());
+                    intent.setClassName(mParentActivity, EventInfoActivity.class.getName());
                     intent.putExtra(EVENT_BEGIN_TIME, selectedEvent.startMillis);
                     intent.putExtra(EVENT_END_TIME, selectedEvent.endMillis);
                     mParentActivity.startActivity(intent);
@@ -855,7 +901,7 @@ public class CalendarView extends View
                     Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI,
                             selectedEvent.id);
                     intent.setData(eventUri);
-                    intent.setClassName(mContext, EventInfoActivity.class.getName());
+                    intent.setClassName(mParentActivity, EventInfoActivity.class.getName());
                     intent.putExtra(EVENT_BEGIN_TIME, selectedEvent.startMillis);
                     intent.putExtra(EVENT_END_TIME, selectedEvent.endMillis);
                     mParentActivity.startActivity(intent);
@@ -874,7 +920,7 @@ public class CalendarView extends View
                 long startMillis = getSelectedTimeInMillis();
                 long endMillis = startMillis + DateUtils.HOUR_IN_MILLIS;
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setClassName(mContext, EditEvent.class.getName());
+                intent.setClassName(mParentActivity, EditEvent.class.getName());
                 intent.putExtra(EVENT_BEGIN_TIME, startMillis);
                 intent.putExtra(EVENT_END_TIME, endMillis);
                 mParentActivity.startActivity(intent);
@@ -883,7 +929,7 @@ public class CalendarView extends View
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI, selectedEvent.id);
                 intent.setData(eventUri);
-                intent.setClassName(mContext, EventInfoActivity.class.getName());
+                intent.setClassName(mParentActivity, EventInfoActivity.class.getName());
                 intent.putExtra(EVENT_BEGIN_TIME, selectedEvent.startMillis);
                 intent.putExtra(EVENT_END_TIME, selectedEvent.endMillis);
                 mParentActivity.startActivity(intent);
@@ -970,6 +1016,7 @@ public class CalendarView extends View
                 return false;
             }
             mPopup.dismiss();
+            mLastPopupEventID = INVALID_EVENT_ID;
 
             long begin = selectedEvent.startMillis;
             long end = selectedEvent.endMillis;
@@ -991,6 +1038,7 @@ public class CalendarView extends View
 	                mSelectedEvent = mSelectedEvent.nextRight;
 	            }
 	            if (mSelectedEvent == null) {
+                    mLastPopupEventID = INVALID_EVENT_ID;
 	                selectionDay += 1;
 	            }
         	} else {
@@ -998,6 +1046,7 @@ public class CalendarView extends View
 	                mSelectedEvent = mSelectedEvent.nextLeft;
 	            }
 	            if (mSelectedEvent == null) {
+                    mLastPopupEventID = INVALID_EVENT_ID;
 	                selectionDay -= 1;
 	            }
         	}
@@ -1010,6 +1059,7 @@ public class CalendarView extends View
 	                mSelectedEvent = mSelectedEvent.nextLeft;
 	            }
 	            if (mSelectedEvent == null) {
+                    mLastPopupEventID = INVALID_EVENT_ID;
 	                selectionDay -= 1;
 	            }
         	} else {
@@ -1017,6 +1067,7 @@ public class CalendarView extends View
 	                mSelectedEvent = mSelectedEvent.nextRight;
 	            }
 	            if (mSelectedEvent == null) {
+                    mLastPopupEventID = INVALID_EVENT_ID;
 	                selectionDay += 1;
 	            }
         	}
@@ -1028,6 +1079,7 @@ public class CalendarView extends View
                 mSelectedEvent = mSelectedEvent.nextUp;
             }
             if (mSelectedEvent == null) {
+                mLastPopupEventID = INVALID_EVENT_ID;
                 if (!mSelectionAllDay) {
                     mSelectionHour -= 1;
                     adjustHourSelection();
@@ -1043,6 +1095,7 @@ public class CalendarView extends View
                 mSelectedEvent = mSelectedEvent.nextDown;
             }
             if (mSelectedEvent == null) {
+                mLastPopupEventID = INVALID_EVENT_ID;
                 if (mSelectionAllDay) {
                     mSelectionAllDay = false;
                 } else {
@@ -1438,9 +1491,45 @@ public class CalendarView extends View
         }
     }
 
+    private void drawCurrentTimeMarker(int top, Canvas canvas, Paint p) {
+        top -= CURRENT_TIME_MARKER_HEIGHT / 2;
+        p.setColor(mCurrentTimeMarkerColor);
+        Paint.Style oldStyle = p.getStyle();
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(2.0f);
+        Path mCurrentTimeMarker = mPath;
+        mCurrentTimeMarker.reset();
+        mCurrentTimeMarker.moveTo(0, top);
+        mCurrentTimeMarker.lineTo(0, CURRENT_TIME_MARKER_HEIGHT + top);
+        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, CURRENT_TIME_MARKER_HEIGHT + top);
+        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_WIDTH, CURRENT_TIME_MARKER_HEIGHT / 2 + top);
+        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, top);
+        mCurrentTimeMarker.lineTo(0, top);
+        canvas.drawPath(mCurrentTimeMarker, p);
+        p.setStyle(oldStyle);
+    }
+
+    private void drawCurrentTimeLine(Rect r, int left, int top, Canvas canvas, Paint p) {
+        //Do a white outline so it'll show up on a red event
+        p.setColor(mCurrentTimeMarkerBorderColor);
+        r.top = top - CURRENT_TIME_LINE_HEIGHT / 2 - CURRENT_TIME_LINE_BORDER_WIDTH;
+        r.bottom = top + CURRENT_TIME_LINE_HEIGHT / 2 + CURRENT_TIME_LINE_BORDER_WIDTH;
+        r.left = left + CURRENT_TIME_LINE_SIDE_BUFFER;
+        r.right = r.left + mCellWidth - 2 * CURRENT_TIME_LINE_SIDE_BUFFER;
+        canvas.drawRect(r, p);
+        //Then draw the red line
+        p.setColor(mCurrentTimeMarkerColor);
+        r.top = top - CURRENT_TIME_LINE_HEIGHT / 2;
+        r.bottom = top + CURRENT_TIME_LINE_HEIGHT / 2;
+        canvas.drawRect(r, p);
+    }
+
     private void doDraw(Canvas canvas) {
         Paint p = mPaint;
         Rect r = mRect;
+        int lineY = mCurrentTime.hour*(mCellHeight + HOUR_GAP)
+            + ((mCurrentTime.minute * mCellHeight) / 60)
+            + 1;
 
         drawGridBackground(r, canvas, p);
         drawHours(r, canvas, p);
@@ -1453,12 +1542,30 @@ public class CalendarView extends View
         	x = mViewWidth - mHoursWidth - mCellWidth + DAY_GAP;
         	for (int day = 0; day < mNumDays; day++, cell++) {
 	            drawEvents(cell, x, HOUR_GAP, canvas, p);
+                //If this is today
+                if(cell == mTodayJulianDay) {
+                    //And the current time shows up somewhere on the screen
+                    if(lineY >= mViewStartY && lineY < mViewStartY + mViewHeight - 2) {
+                        //draw both the marker and the line
+                        drawCurrentTimeMarker(lineY, canvas, p);
+                        drawCurrentTimeLine(r, x, lineY, canvas, p);
+                    }
+                }
 	            x -= deltaX;
 	        }
         } else {
         	x = mHoursWidth;
         	for (int day = 0; day < mNumDays; day++, cell++) {
 	            drawEvents(cell, x, HOUR_GAP, canvas, p);
+                //If this is today
+                if(cell == mTodayJulianDay) {
+                    //And the current time shows up somewhere on the screen
+                    if(lineY >= mViewStartY && lineY < mViewStartY + mViewHeight - 2) {
+                        //draw both the marker and the line
+                        drawCurrentTimeMarker(lineY, canvas, p);
+                        drawCurrentTimeLine(r, x, lineY, canvas, p);
+                    }
+                }
 	            x += deltaX;
 	        }
         }
@@ -1543,22 +1650,23 @@ public class CalendarView extends View
     private void drawDayHeader(String dateStr, int day, int cell, int x, Canvas canvas, Paint p) {
         float xCenter = x + mCellWidth / 2.0f;
 
-        boolean isWeekend = false;
         if (mJalali) {
-        	if (day == 6)
-        		isWeekend = true;
+            // TODO: check?
+            if (day == 5) {
+                p.setColor(mWeek_saturdayColor);
+            } else if (day == 6) {
+                p.setColor(mWeek_sundayColor);
+            } else {
+                p.setColor(mCalendarDateBannerTextColor);
+            }
         } else {
-	        if ((mStartDay == Time.SUNDAY && (day == 0 || day == 6))
-	                || (mStartDay == Time.MONDAY && (day == 5 || day == 6))
-	                || (mStartDay == Time.SATURDAY && (day == 0 || day == 1))) {
-	            isWeekend = true;
-	        }
-        }
-
-        if (isWeekend) {
-            p.setColor(mWeek_weekendColor);
-        } else {
-            p.setColor(mCalendarDateBannerTextColor);
+            if (Utils.isSaturday(day, mStartDay)) {
+                p.setColor(mWeek_saturdayColor);
+            } else if (Utils.isSunday(day, mStartDay)) {
+                p.setColor(mWeek_sundayColor);
+            } else {
+                p.setColor(mCalendarDateBannerTextColor);
+            }
         }
 
         int dateNum = mFirstDate + day;
@@ -2086,7 +2194,7 @@ public class CalendarView extends View
             if (false) {
                 int flags = DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_ALL
                         | DateUtils.FORMAT_CAP_NOON_MIDNIGHT;
-                if (DateFormat.is24HourFormat(mContext)) {
+                if (DateFormat.is24HourFormat(mParentActivity)) {
                     flags |= DateUtils.FORMAT_24HOUR;
                 }
                 String timeRange = DateUtils.formatDateRange(mParentActivity,
@@ -2278,7 +2386,7 @@ public class CalendarView extends View
     private RectF drawEventRect(Event event, Canvas canvas, Paint p, Paint eventTextPaint) {
 
         int color = event.color;
-        
+
         // Fade visible boxes if event was declined.
         boolean declined = (event.selfAttendeeStatus == Attendees.ATTENDEE_STATUS_DECLINED);
         if (declined) {
@@ -2290,7 +2398,7 @@ public class CalendarView extends View
             color = ((red >> 1) << 16) | ((green >> 1) << 8) | (blue >> 1);
             color += 0x7F7F7F + alpha;
         }
-        
+
         // If this event is selected, then use the selection color
         if (mSelectedEvent == event) {
             if (mSelectionMode == SELECTION_PRESSED) {
@@ -2337,7 +2445,7 @@ public class CalendarView extends View
 
         rf.left += 2;
         rf.right -= 2;
-        
+
         return rf;
     }
 
@@ -2456,6 +2564,11 @@ public class CalendarView extends View
             mPopup.dismiss();
             return;
         }
+        if (mLastPopupEventID == mSelectedEvent.id) {
+            return;
+        }
+
+        mLastPopupEventID = mSelectedEvent.id;
 
         // Remove any outstanding callbacks to dismiss the popup.
         getHandler().removeCallbacks(mDismissPopup);
@@ -2479,7 +2592,7 @@ public class CalendarView extends View
                     | DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_ALL
                     | DateUtils.FORMAT_CAP_NOON_MIDNIGHT;
         }
-        if (DateFormat.is24HourFormat(mContext)) {
+        if (DateFormat.is24HourFormat(mParentActivity)) {
             flags |= DateUtils.FORMAT_24HOUR;
         }
         String timeRange = DateUtils.formatDateRange(mParentActivity,
@@ -2509,7 +2622,6 @@ public class CalendarView extends View
     void doSingleTapUp(MotionEvent ev) {
         int x = (int) ev.getX();
         int y = (int) ev.getY();
-        Event selectedEvent = mSelectedEvent;
         int selectedDay = mSelectionDay;
         int selectedHour = mSelectionHour;
 
@@ -2595,7 +2707,7 @@ public class CalendarView extends View
                     mPreviousDirection = direction;
                 }
             }
-            
+
             // If we have moved at least the HORIZONTAL_SCROLL_THRESHOLD,
             // then change the title to the new day (or week), but only
             // if we haven't already changed the title.
@@ -2682,7 +2794,7 @@ public class CalendarView extends View
         }
         date.normalize(true /* ignore isDst */);
         initView(view);
-        view.setFrame(getLeft(), getTop(), getRight(), getBottom());
+        view.layout(getLeft(), getTop(), getRight(), getBottom());
         view.reloadEvents();
         return switchForward;
     }
@@ -2760,13 +2872,13 @@ public class CalendarView extends View
             invalidate();
         }
 
-        final long startMillis = getSelectedTimeInMillis();         
+        final long startMillis = getSelectedTimeInMillis();
         int flags = DateUtils.FORMAT_SHOW_TIME
                 | DateUtils.FORMAT_CAP_NOON_MIDNIGHT
                 | DateUtils.FORMAT_SHOW_WEEKDAY;
         final String title = DateUtils.formatDateTime(mParentActivity, startMillis, flags);
         menu.setHeaderTitle(title);
-        
+
         int numSelectedEvents = mSelectedEvents.size();
         if (mNumDays == 1) {
             // Day view.
@@ -2778,12 +2890,15 @@ public class CalendarView extends View
                 item.setOnMenuItemClickListener(mContextMenuHandler);
                 item.setIcon(android.R.drawable.ic_menu_info_details);
 
-                if (isEventEditable(mContext, mSelectedEvent)) {
+                int accessLevel = getEventAccessLevel(mParentActivity, mSelectedEvent);
+                if (accessLevel == ACCESS_LEVEL_EDIT) {
                     item = menu.add(0, MenuHelper.MENU_EVENT_EDIT, 0, R.string.event_edit);
                     item.setOnMenuItemClickListener(mContextMenuHandler);
                     item.setIcon(android.R.drawable.ic_menu_edit);
                     item.setAlphabeticShortcut('e');
+                }
 
+                if (accessLevel >= ACCESS_LEVEL_DELETE) {
                     item = menu.add(0, MenuHelper.MENU_EVENT_DELETE, 0, R.string.event_delete);
                     item.setOnMenuItemClickListener(mContextMenuHandler);
                     item.setIcon(android.R.drawable.ic_menu_delete);
@@ -2803,7 +2918,7 @@ public class CalendarView extends View
             }
         } else {
             // Week view.
-            
+
             // If there is a selected event, then allow it to be viewed and
             // edited.
             if (numSelectedEvents >= 1) {
@@ -2811,12 +2926,15 @@ public class CalendarView extends View
                 item.setOnMenuItemClickListener(mContextMenuHandler);
                 item.setIcon(android.R.drawable.ic_menu_info_details);
 
-                if (isEventEditable(mContext, mSelectedEvent)) {
+                int accessLevel = getEventAccessLevel(mParentActivity, mSelectedEvent);
+                if (accessLevel == ACCESS_LEVEL_EDIT) {
                     item = menu.add(0, MenuHelper.MENU_EVENT_EDIT, 0, R.string.event_edit);
                     item.setOnMenuItemClickListener(mContextMenuHandler);
                     item.setIcon(android.R.drawable.ic_menu_edit);
                     item.setAlphabeticShortcut('e');
+                }
 
+                if (accessLevel >= ACCESS_LEVEL_DELETE) {
                     item = menu.add(0, MenuHelper.MENU_EVENT_DELETE, 0, R.string.event_delete);
                     item.setOnMenuItemClickListener(mContextMenuHandler);
                     item.setIcon(android.R.drawable.ic_menu_delete);
@@ -2867,7 +2985,7 @@ public class CalendarView extends View
                         Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI, id);
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(eventUri);
-                        intent.setClassName(mContext, EventInfoActivity.class.getName());
+                        intent.setClassName(mParentActivity, EventInfoActivity.class.getName());
                         intent.putExtra(EVENT_BEGIN_TIME, mSelectedEvent.startMillis);
                         intent.putExtra(EVENT_END_TIME, mSelectedEvent.endMillis);
                         mParentActivity.startActivity(intent);
@@ -2880,7 +2998,7 @@ public class CalendarView extends View
                         Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI, id);
                         Intent intent = new Intent(Intent.ACTION_EDIT);
                         intent.setData(eventUri);
-                        intent.setClassName(mContext, EditEvent.class.getName());
+                        intent.setClassName(mParentActivity, EditEvent.class.getName());
                         intent.putExtra(EVENT_BEGIN_TIME, mSelectedEvent.startMillis);
                         intent.putExtra(EVENT_END_TIME, mSelectedEvent.endMillis);
                         mParentActivity.startActivity(intent);
@@ -2901,7 +3019,7 @@ public class CalendarView extends View
                     long startMillis = getSelectedTimeInMillis();
                     long endMillis = startMillis + DateUtils.HOUR_IN_MILLIS;
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setClassName(mContext, EditEvent.class.getName());
+                    intent.setClassName(mParentActivity, EditEvent.class.getName());
                     intent.putExtra(EVENT_BEGIN_TIME, startMillis);
                     intent.putExtra(EVENT_END_TIME, endMillis);
                     intent.putExtra(EditEvent.EVENT_ALL_DAY, mSelectionAllDay);
@@ -2926,7 +3044,7 @@ public class CalendarView extends View
         }
     }
 
-    private static boolean isEventEditable(Context context, Event e) {
+    private static int getEventAccessLevel(Context context, Event e) {
         ContentResolver cr = context.getContentResolver();
 
         int visibility = Calendars.NO_ACCESS;
@@ -2938,12 +3056,19 @@ public class CalendarView extends View
                 null /* selection */,
                 null /* selectionArgs */,
                 null /* sort */);
-        if ((cursor == null) || (cursor.getCount() == 0)) {
-            return false;
+
+        if (cursor == null) {
+            return ACCESS_LEVEL_NONE;
         }
+
+        if (cursor.getCount() == 0) {
+            cursor.close();
+            return ACCESS_LEVEL_NONE;
+        }
+
         cursor.moveToFirst();
         long calId = cursor.getLong(0);
-        cursor.deactivate();
+        cursor.close();
 
         Uri uri = Calendars.CONTENT_URI;
         String where = String.format(CALENDARS_WHERE, calId);
@@ -2956,16 +3081,21 @@ public class CalendarView extends View
             calendarOwnerAccount = cursor.getString(CALENDARS_INDEX_OWNER_ACCOUNT);
             cursor.close();
         }
-        
+
         if (visibility < Calendars.CONTRIBUTOR_ACCESS) {
-            return false;
+            return ACCESS_LEVEL_NONE;
         }
 
         if (e.guestsCanModify) {
-            return true;
+            return ACCESS_LEVEL_EDIT;
         }
 
-        return !TextUtils.isEmpty(calendarOwnerAccount) && calendarOwnerAccount.equals(e.organizer);
+        if (!TextUtils.isEmpty(calendarOwnerAccount) &&
+                calendarOwnerAccount.equalsIgnoreCase(e.organizer)) {
+            return ACCESS_LEVEL_EDIT;
+        }
+
+        return ACCESS_LEVEL_DELETE;
     }
 
     /**
@@ -3224,21 +3354,30 @@ public class CalendarView extends View
     }
 
     /**
-     * Cleanup the pop-up.
+     * Cleanup the pop-up and timers.
      */
     public void cleanup() {
         // Protect against null-pointer exceptions
         if (mPopup != null) {
             mPopup.dismiss();
         }
+        mLastPopupEventID = INVALID_EVENT_ID;
         Handler handler = getHandler();
         if (handler != null) {
             handler.removeCallbacks(mDismissPopup);
+            handler.removeCallbacks(mUpdateCurrentTime);
         }
-        
+
         // Turn off redraw
         mRemeasure = false;
         mRedrawScreen = false;
+    }
+
+    /**
+     * Restart the update timer
+     */
+    public void restartCurrentTimeUpdates() {
+        post(mUpdateCurrentTime);
     }
 
     @Override protected void onDetachedFromWindow() {
@@ -3256,6 +3395,19 @@ public class CalendarView extends View
             if (mPopup != null) {
                 mPopup.dismiss();
             }
+        }
+    }
+
+    class UpdateCurrentTime implements Runnable {
+        public void run() {
+            long currentTime = System.currentTimeMillis();
+            mCurrentTime.set(currentTime);
+            //% causes update to occur on 5 minute marks (11:10, 11:15, 11:20, etc.)
+            postDelayed(mUpdateCurrentTime,
+                    UPDATE_CURRENT_TIME_DELAY - (currentTime % UPDATE_CURRENT_TIME_DELAY));
+            mTodayJulianDay = Time.getJulianDay(currentTime, mCurrentTime.gmtoff);
+            mRedrawScreen = true;
+            invalidate();
         }
     }
 }
