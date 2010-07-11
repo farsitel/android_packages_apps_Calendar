@@ -237,7 +237,7 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
         	mStartDay = Calendar.getInstance().getFirstDayOfWeek();
         }
         int diff = mStartDay - Calendar.SUNDAY - 1;
-        final int startDay = Utils.getFirstDayOfWeek();
+        final int startDay = Utils.getFirstDayOfWeek(mJalali);
         final int sundayColor = getResources().getColor(R.color.sunday_text_color);
         final int saturdayColor = getResources().getColor(R.color.saturday_text_color);
 

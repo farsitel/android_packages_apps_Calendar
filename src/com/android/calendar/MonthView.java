@@ -244,7 +244,7 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         mViewCalendar.monthDay = 1;
         long millis = mViewCalendar.normalize(true /* ignore DST */);
         mFirstJulianDay = Time.getJulianDay(millis, mViewCalendar.gmtoff);
-        mStartDay = Utils.getFirstDayOfWeek();
+        mStartDay = Utils.getFirstDayOfWeek(mJalali);
         mViewCalendar.set(now);
 
         if (mJalali) {
@@ -493,7 +493,6 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     void reloadEvents() {
         // Get the date for the beginning of the month
         Time monthStart = mTempTime;
-<<<<<<< HEAD
         long millis;
         int startDay;
         if (mJalali) {

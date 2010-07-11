@@ -406,7 +406,7 @@ public class CalendarView extends View
         setClickable(true);
         setOnCreateContextMenuListener(this);
 
-        mStartDay = Utils.getFirstDayOfWeek();
+        mStartDay = Utils.getFirstDayOfWeek(mJalali);
 
         mCurrentTime = new Time();
         long currentTime = System.currentTimeMillis();
@@ -539,12 +539,11 @@ public class CalendarView extends View
     }
 
     public void updateIs24HourFormat() {
-        mIs24HourFormat = DateFormat.is24HourFormat(context);
+        mIs24HourFormat = DateFormat.is24HourFormat(getContext());
         mHourStrs = mIs24HourFormat ? CalendarData.s24Hours : CalendarData.s12HoursNoAmPm;
         if (mPersianDigits)
         	for (int i = 0; i < mHourStrs.length; i++)
         		mHourStrs[i] = Jalali.persianDigits(mHourStrs[i]);
-        mHoursWidth = computeMaxStringWidth(0, mHourStrs, p);
     }
 
     /**
