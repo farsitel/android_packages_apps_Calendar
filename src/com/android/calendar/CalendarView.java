@@ -1498,12 +1498,21 @@ public class CalendarView extends View
         p.setStrokeWidth(2.0f);
         Path mCurrentTimeMarker = mPath;
         mCurrentTimeMarker.reset();
-        mCurrentTimeMarker.moveTo(0, top);
-        mCurrentTimeMarker.lineTo(0, CURRENT_TIME_MARKER_HEIGHT + top);
-        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, CURRENT_TIME_MARKER_HEIGHT + top);
-        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_WIDTH, CURRENT_TIME_MARKER_HEIGHT / 2 + top);
-        mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, top);
-        mCurrentTimeMarker.lineTo(0, top);
+        if (mRTL) {
+            mCurrentTimeMarker.moveTo(mViewWidth, top);
+            mCurrentTimeMarker.lineTo(mViewWidth, CURRENT_TIME_MARKER_HEIGHT + top);
+            mCurrentTimeMarker.lineTo(mViewWidth - CURRENT_TIME_MARKER_INNER_WIDTH, CURRENT_TIME_MARKER_HEIGHT + top);
+            mCurrentTimeMarker.lineTo(mViewWidth - CURRENT_TIME_MARKER_WIDTH, CURRENT_TIME_MARKER_HEIGHT / 2 + top);
+            mCurrentTimeMarker.lineTo(mViewWidth - CURRENT_TIME_MARKER_INNER_WIDTH, top);
+            mCurrentTimeMarker.lineTo(mViewWidth, top);
+        } else {
+            mCurrentTimeMarker.moveTo(0, top);
+            mCurrentTimeMarker.lineTo(0, CURRENT_TIME_MARKER_HEIGHT + top);
+            mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, CURRENT_TIME_MARKER_HEIGHT + top);
+            mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_WIDTH, CURRENT_TIME_MARKER_HEIGHT / 2 + top);
+            mCurrentTimeMarker.lineTo(CURRENT_TIME_MARKER_INNER_WIDTH, top);
+            mCurrentTimeMarker.lineTo(0, top);
+        }
         canvas.drawPath(mCurrentTimeMarker, p);
         p.setStyle(oldStyle);
     }
@@ -1634,7 +1643,7 @@ public class CalendarView extends View
 
         int right;
         if (mRTL)
-        	right = mViewWidth - HOURS_RIGHT_MARGIN;
+        	right = mViewWidth - HOURS_RIGHT_MARGIN + 4;
         else
         	right = mHoursWidth - HOURS_RIGHT_MARGIN;
         int y = HOUR_GAP + mHoursTextHeight;
@@ -1650,10 +1659,7 @@ public class CalendarView extends View
         float xCenter = x + mCellWidth / 2.0f;
 
         if (mJalali) {
-            // TODO: check?
-            if (day == 5) {
-                p.setColor(mWeek_saturdayColor);
-            } else if (day == 6) {
+            if (Utils.isFriday(day, mStartDay)) {
                 p.setColor(mWeek_sundayColor);
             } else {
                 p.setColor(mCalendarDateBannerTextColor);

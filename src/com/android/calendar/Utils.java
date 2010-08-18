@@ -278,6 +278,18 @@ public class Utils {
     }
 
     /**
+     * Determine whether the column position is Sunday or not.
+     * @param column the column position
+     * @param firstDayOfWeek the first day of week in android.text.format.Time
+     * @return true if the column is Sunday position
+     */
+    public static boolean isFriday(int column, int firstDayOfWeek) {
+        return (firstDayOfWeek == Time.SUNDAY && column == 5)
+            || (firstDayOfWeek == Time.MONDAY && column == 4)
+            || (firstDayOfWeek == Time.SATURDAY && column == 6);
+    }
+
+    /**
      * Scan through a cursor of calendars and check if names are duplicated.
      *
      * This travels a cursor containing calendar display names and fills in the provided map with

@@ -241,15 +241,27 @@ public class MonthActivity extends Activity implements ViewSwitcher.ViewFactory,
         final int sundayColor = getResources().getColor(R.color.sunday_text_color);
         final int saturdayColor = getResources().getColor(R.color.saturday_text_color);
 
-        for (int day = 0; day < 7; day++) {
-            final String dayString = DateUtils.getDayOfWeekString(
-                    (DAY_OF_WEEK_KINDS[day] + diff) % 7 + 1, DateUtils.LENGTH_MEDIUM);
-            final TextView label = (TextView) findViewById(DAY_OF_WEEK_LABEL_IDS[day]);
-            label.setText(dayString);
-            if (Utils.isSunday(day, startDay)) {
-                label.setTextColor(sundayColor);
-            } else if (Utils.isSaturday(day, startDay)) {
-                label.setTextColor(saturdayColor);
+        if (mJalali) {
+            for (int day = 0; day < 7; day++) {
+                final String dayString = DateUtils.getDayOfWeekString(
+                        (DAY_OF_WEEK_KINDS[day] + diff) % 7 + 1, DateUtils.LENGTH_MEDIUM);
+                final TextView label = (TextView) findViewById(DAY_OF_WEEK_LABEL_IDS[day]);
+                label.setText(dayString);
+                if (Utils.isFriday(day, startDay)) {
+                    label.setTextColor(saturdayColor);
+                }
+            }
+        } else {
+            for (int day = 0; day < 7; day++) {
+                final String dayString = DateUtils.getDayOfWeekString(
+                        (DAY_OF_WEEK_KINDS[day] + diff) % 7 + 1, DateUtils.LENGTH_MEDIUM);
+                final TextView label = (TextView) findViewById(DAY_OF_WEEK_LABEL_IDS[day]);
+                label.setText(dayString);
+                if (Utils.isSunday(day, startDay)) {
+                    label.setTextColor(sundayColor);
+                } else if (Utils.isSaturday(day, startDay)) {
+                    label.setTextColor(saturdayColor);
+                }
             }
         }
 

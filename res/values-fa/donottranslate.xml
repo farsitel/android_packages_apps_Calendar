@@ -16,5 +16,5 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Order of weekday/day label in week view -->
-    <string name="weekday_day">%2$s %1$s</string>
+    <string name="weekday_day">%1$s %2$s</string>
 </resources>

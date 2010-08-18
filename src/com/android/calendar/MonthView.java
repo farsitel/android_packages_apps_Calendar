@@ -539,25 +539,50 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
                 }
 
                 // Compute the new set of days with events
-                for (int i = 0; i < numEvents; i++) {
-                    Event event = events.get(i);
-                    int startDay = event.startDay - mFirstJulianDay;
-                    int endDay = event.endDay - mFirstJulianDay + 1;
-                    if (startDay < 31 || endDay >= 0) {
-                        if (startDay < 0) {
-                            startDay = 0;
+                if (mJalali) {
+                    for (int i = 0; i < numEvents; i++) {
+                        Event event = events.get(i);
+                        int startDay = event.startDay - mJalaliFirstJulianDay;
+                        int endDay = event.endDay - mJalaliFirstJulianDay + 1;
+                        if (startDay < 31 || endDay >= 0) {
+                            if (startDay < 0) {
+                                startDay = 0;
+                            }
+                            if (startDay > 31) {
+                                startDay = 31;
+                            }
+                            if (endDay < 0) {
+                                endDay = 0;
+                            }
+                            if (endDay > 31) {
+                                endDay = 31;
+                            }
+                            for (int j = startDay; j < endDay; j++) {
+                                eventDay[j] = true;
+                            }
                         }
-                        if (startDay > 31) {
-                            startDay = 31;
-                        }
-                        if (endDay < 0) {
-                            endDay = 0;
-                        }
-                        if (endDay > 31) {
-                            endDay = 31;
-                        }
-                        for (int j = startDay; j < endDay; j++) {
-                            eventDay[j] = true;
+                    }
+                } else {
+                    for (int i = 0; i < numEvents; i++) {
+                        Event event = events.get(i);
+                        int startDay = event.startDay - mFirstJulianDay;
+                        int endDay = event.endDay - mFirstJulianDay + 1;
+                        if (startDay < 31 || endDay >= 0) {
+                            if (startDay < 0) {
+                                startDay = 0;
+                            }
+                            if (startDay > 31) {
+                                startDay = 31;
+                            }
+                            if (endDay < 0) {
+                                endDay = 0;
+                            }
+                            if (endDay > 31) {
+                                endDay = 31;
+                            }
+                            for (int j = startDay; j < endDay; j++) {
+                                eventDay[j] = true;
+                            }
                         }
                     }
                 }
@@ -835,7 +860,11 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             // style.
             r.top--;
             if (mirroredColumn != 0) {
-                r.left--;
+                if (mRTL) {
+                    r.right--;
+                } else {
+                    r.left--;
+                }
             }
             p.setStyle(Style.FILL);
             p.setColor(mMonthBgColor);
@@ -877,18 +906,35 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             p.setColor(mMonthWeekBannerColor);
             if (isLandscape) {
                 int bottom = r.bottom;
-                r.bottom = r.top + WEEK_BANNER_HEIGHT;
-                r.left++;
-                canvas.drawRect(r, p);
-                r.bottom = bottom;
-                r.left--;
+                if (mRTL) {
+                    r.bottom = r.top + WEEK_BANNER_HEIGHT;
+                    r.right++;
+                    canvas.drawRect(r, p);
+                    r.bottom = bottom;
+                    r.right--;
+                } else {
+                    r.bottom = r.top + WEEK_BANNER_HEIGHT;
+                    r.left++;
+                    canvas.drawRect(r, p);
+                    r.bottom = bottom;
+                    r.left--;
+                }
             } else {
-                int top = r.top;
-                r.top = r.bottom - WEEK_BANNER_HEIGHT;
-                r.left++;
-                canvas.drawRect(r, p);
-                r.top = top;
-                r.left--;
+                if (mRTL) {
+                    int top = r.top;
+                    r.top = r.bottom - WEEK_BANNER_HEIGHT;
+                    r.right++;
+                    canvas.drawRect(r, p);
+                    r.top = top;
+                    r.right--;
+                } else {
+                    int top = r.top;
+                    r.top = r.bottom - WEEK_BANNER_HEIGHT;
+                    r.left++;
+                    canvas.drawRect(r, p);
+                    r.top = top;
+                    r.left--;
+                }
             }
 
             // Draw the number
@@ -898,7 +944,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             p.setTextSize(WEEK_TEXT_SIZE);
             p.setTextAlign(Paint.Align.LEFT);
 
-            int textX = r.left + WEEK_TEXT_PADDING;
+            int textX;
+            if (mRTL) {
+                textX = r.right + WEEK_TEXT_PADDING;
+            } else {
+                textX = r.left - WEEK_TEXT_PADDING;
+            }
             int textY;
             if (isLandscape) {
                 textY = r.top + WEEK_BANNER_HEIGHT - WEEK_TEXT_PADDING;
@@ -918,23 +969,42 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         if (!withinCurrentMonth) {
             p.setColor(mMonthOtherMonthDayNumberColor);
         } else {
-            if (isToday && !drawSelection) {
-                p.setColor(mMonthTodayNumberColor);
-            } else if (Utils.isSunday(column, mStartDay)) {
-                p.setColor(mMonthSundayColor);
-            } else if (Utils.isSaturday(column, mStartDay)) {
-                p.setColor(mMonthSaturdayColor);
+            if (mJalali) {
+                if (isToday && !drawSelection) {
+                    p.setColor(mMonthTodayNumberColor);
+                } else if (Utils.isFriday(column, mStartDay)) {
+                    p.setColor(mMonthSaturdayColor);
+                } else {
+                    p.setColor(mMonthDayNumberColor);
+                }
             } else {
-                p.setColor(mMonthDayNumberColor);
+                if (isToday && !drawSelection) {
+                    p.setColor(mMonthTodayNumberColor);
+                } else if (Utils.isSunday(column, mStartDay)) {
+                    p.setColor(mMonthSundayColor);
+                } else if (Utils.isSaturday(column, mStartDay)) {
+                    p.setColor(mMonthSaturdayColor);
+                } else {
+                    p.setColor(mMonthDayNumberColor);
+                }
             }
             //bolds the day if there's an event that day
-            p.setFakeBoldText(eventDay[day-mFirstJulianDay]);
+            if (mJalali) {
+                p.setFakeBoldText(eventDay[day-mJalaliFirstJulianDay]);
+            } else {
+                p.setFakeBoldText(eventDay[day-mFirstJulianDay]);
+            }
         }
         /*Drawing of day number is done here
          *easy to find tags draw number draw day*/
         p.setTextAlign(Paint.Align.CENTER);
         // center of text
-        int textX = r.left + (r.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH - r.left) / 2;
+        int textX;
+        if (mRTL) {
+            textX = r.right - (r.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH - r.left) / 2;
+        } else {
+            textX = r.left + (r.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH - r.left) / 2;
+        }
         int textY = (int) (r.top + p.getTextSize() + TEXT_TOP_MARGIN); // bottom of text
         if (mPersianDigits)
         	canvas.drawText(Jalali.persianDigits(String.valueOf(mCursor.getDayAt(row, column, mJalali))), textX, textY, p);
@@ -946,7 +1016,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
     private void drawEvents(int date, Canvas canvas, Rect rect, Paint p, boolean drawBg) {
         // The top of the busybits section lines up with the top of the day number
         int top = rect.top + TEXT_TOP_MARGIN + BUSY_BITS_MARGIN;
-        int left = rect.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH;
+        int left;
+        if (mRTL) {
+            left = rect.left + BUSY_BITS_MARGIN;
+        } else {
+            left = rect.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH;
+        }
 
         Style oldStyle = p.getStyle();
         int oldColor = p.getColor();
@@ -982,7 +1057,12 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         p.setColor(mBusybitsColor);
 
-        int left = rect.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH;
+        int left;
+        if (mRTL) {
+            left = rect.left + BUSY_BITS_MARGIN;
+        }else {
+            left = rect.right - BUSY_BITS_MARGIN - BUSY_BITS_WIDTH;
+        }
         int bottom = rect.bottom - BUSY_BITS_MARGIN;
 
         RectF rf = mRectF;
@@ -1394,27 +1474,51 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             break;
 
         case KeyEvent.KEYCODE_DPAD_LEFT:
-            if (mCursor.left()) {
-                other = mOtherViewCalendar;
-                other.set(mViewCalendar);
-                other.month -= 1;
-                other.monthDay = mCursor.getSelectedDayOfMonth();
-
-                // restore the calendar cursor for the animation
-                mCursor.right();
+            if (mRTL) {
+                if (mCursor.right()) {
+                    other = mOtherViewCalendar;
+                    other.set(mViewCalendar);
+                    other.month += 1;
+                    other.monthDay = mCursor.getSelectedDayOfMonth();
+    
+                    // restore the calendar cursor for the animation
+                    mCursor.left();
+                }
+            } else {
+                if (mCursor.left()) {
+                    other = mOtherViewCalendar;
+                    other.set(mViewCalendar);
+                    other.month -= 1;
+                    other.monthDay = mCursor.getSelectedDayOfMonth();
+    
+                    // restore the calendar cursor for the animation
+                    mCursor.right();
+                }
             }
             redraw = true;
             break;
 
         case KeyEvent.KEYCODE_DPAD_RIGHT:
-            if (mCursor.right()) {
-                other = mOtherViewCalendar;
-                other.set(mViewCalendar);
-                other.month += 1;
-                other.monthDay = mCursor.getSelectedDayOfMonth();
-
-                // restore the calendar cursor for the animation
-                mCursor.left();
+            if (mRTL) {
+                if (mCursor.left()) {
+                    other = mOtherViewCalendar;
+                    other.set(mViewCalendar);
+                    other.month -= 1;
+                    other.monthDay = mCursor.getSelectedDayOfMonth();
+    
+                    // restore the calendar cursor for the animation
+                    mCursor.right();
+                }
+            } else {
+                if (mCursor.right()) {
+                    other = mOtherViewCalendar;
+                    other.set(mViewCalendar);
+                    other.month += 1;
+                    other.monthDay = mCursor.getSelectedDayOfMonth();
+    
+                    // restore the calendar cursor for the animation
+                    mCursor.left();
+                }
             }
             redraw = true;
             break;
