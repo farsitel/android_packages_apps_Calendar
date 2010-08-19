@@ -48,7 +48,7 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.format.Jalali;
 import android.text.format.JalaliDate;
-import android.text.FriBidi;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
@@ -2492,15 +2492,11 @@ public class CalendarView extends View
             len = MAX_EVENT_TEXT_LEN;
         }
 
-        // Arabic shapping and RTL text
-        FriBidi fribidiText = new FriBidi(text);
-        text = fribidiText.before_reorder;
-
         // Figure out how much space the event title will take, and create a
         // String fragment that will fit in the rectangle.  Use multiple lines,
         // if available.
         p.getTextWidths(text, mCharWidths);
-        int fragmentStart = 0, fragmentEnd = len;
+        String fragment = text;
         float top = rf.top + mEventTextAscent + topMargin;
         int start = 0;
 
@@ -2529,11 +2525,9 @@ public class CalendarView extends View
                 // isn't the last line, then break the line at the previous
                 // word.  If there was no previous word, then break this word.
                 if (sum > width) {
-                    fragmentStart = start;
-
                     if (end > start && !lastLine) {
                         // There was a previous word on this line.
-                        fragmentEnd = end;
+                        fragment = text.substring(start, end);
                         start = end;
                         break;
                     }
@@ -2541,7 +2535,7 @@ public class CalendarView extends View
                     // This is the only word and it is too long to fit on
                     // the line (or this is the last line), so take as many
                     // characters of this word as will fit.
-                    fragmentEnd = ii;
+                    fragment = text.substring(start, ii);
                     start = ii;
                     break;
                 }
@@ -2550,13 +2544,11 @@ public class CalendarView extends View
             // If sum <= width, then we can fit the rest of the text on
             // this line.
             if (sum <= width) {
-                fragmentStart = start;
-                fragmentEnd = len;
+                fragment = text.substring(start, len);
                 start = len;
             }
 
-            fribidiText.reorder(fragmentStart, fragmentEnd - fragmentStart);
-            canvas.drawText(fribidiText.str.substring(fragmentStart, fragmentEnd), rf.left + 1, top, p);
+            canvas.drawText(fragment, rf.left + 1, top, p);
 
             top += lineHeight;
             height -= lineHeight;
