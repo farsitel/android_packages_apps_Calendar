@@ -33,7 +33,7 @@
     <!-- This is the label for the Guests/Attendees of an event -->
     <string name="attendees_label">مهمان‌ها</string>
     <!-- This is the label for the Guest Responses and count of an event e.g. Yes (3) -->
-    <string name="response_label">"<xliff:g id="response_type">%s</xliff:g> (<xliff:g id="guest_count">%d</xliff:g>)"</string>
+    <string name="response_label">"<xliff:g id="response_type">%s</xliff:g> (<xliff:g id="guest_count">L%d</xliff:g>)"</string>
     
     <!-- Some events repeat daily, weekly, monthly, or yearly.  This is the label
          for all the choices about how often an event repeats (including the choice
@@ -48,7 +48,7 @@
         <item quantity="one">۱ دقیقه</item>
         <!-- This is the label for 2 or more minutes. The actual number of
              minutes is a parameter. -->
-        <item quantity="other"><xliff:g id="count">%d</xliff:g> دقیقه</item>
+        <item quantity="other"><xliff:g id="count">L%d</xliff:g> دقیقه</item>
     </plurals>
     <!-- We use the abbreviation "mins" instead of "minutes" to keep the string short.
          This is the number of minutes displayed for a calendar reminder.  For example,
@@ -59,7 +59,7 @@
         <item quantity="one">۱ دقیقه</item>
         <!-- This is the label for 2 or more minutes. The actual number of
              minutes is a parameter. -->
-        <item quantity="other"><xliff:g id="count">%d</xliff:g> دقیقه</item>
+        <item quantity="other"><xliff:g id="count">L%d</xliff:g> دقیقه</item>
     </plurals>
     <!-- This is the number of hours displayed for a calendar reminder.  For example,
          a reminder of 1 hour would be displayed as '1 hour'.  The translation
@@ -69,7 +69,7 @@
         <item quantity="one">۱ ساعت</item>
         <!-- This is the label for a reminder of 2 or more hours. The actual number of
              hours is a parameter. -->
-        <item quantity="other"><xliff:g id="count">%d</xliff:g> ساعت</item>
+        <item quantity="other"><xliff:g id="count">L%d</xliff:g> ساعت</item>
     </plurals>
     <!-- This is the number of days displayed for a calendar reminder.  For example,
          a reminder of 2 days would be displayed as '2 days'.  The translation
@@ -79,7 +79,7 @@
         <item quantity="one">۱ روز</item>
         <!-- This is the label for a reminder of 2 or more days. The actual number of
              days is a parameter. -->
-        <item quantity="other"><xliff:g id="count">%d</xliff:g> روز</item>
+        <item quantity="other"><xliff:g id="count">L%d</xliff:g> روز</item>
     </plurals>
     
     <!-- Menu items: -->
@@ -135,7 +135,7 @@
          only display 4 events then we will display the first 4 events and then
          show 'plus 2 more' to indicate that there are two more events that we
          could not display because of lack of room. -->
-    <string name="plus_N_more">"(بعلاوهٔ <xliff:g id="more_count">%d</xliff:g>تای دیگر \u2026)"</string>
+    <string name="plus_N_more">"(بعلاوهٔ <xliff:g id="more_count">L%d</xliff:g>تای دیگر \u2026)"</string>
 
     <!-- Select Calendars activity -->
     <skip />
