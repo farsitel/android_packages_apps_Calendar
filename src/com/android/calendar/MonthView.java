@@ -1449,10 +1449,11 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
             return true;
         case KeyEvent.KEYCODE_DPAD_UP:
             if (mCursor.up()) {
+                JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                jd.decreaseMonth(1);
+                jd.day = mCursor.getSelectedDayOfMonth();
                 other = mOtherViewCalendar;
-                other.set(mViewCalendar);
-                other.month -= 1;
-                other.monthDay = mCursor.getSelectedDayOfMonth();
+                other.set(Jalali.jalaliToGregorianTime(jd));
 
                 // restore the calendar cursor for the animation
                 mCursor.down();
@@ -1462,10 +1463,11 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
 
         case KeyEvent.KEYCODE_DPAD_DOWN:
             if (mCursor.down()) {
+                JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                jd.increaseMonth(1);
+                jd.day = mCursor.getSelectedDayOfMonth();
                 other = mOtherViewCalendar;
-                other.set(mViewCalendar);
-                other.month += 1;
-                other.monthDay = mCursor.getSelectedDayOfMonth();
+                other.set(Jalali.jalaliToGregorianTime(jd));
 
                 // restore the calendar cursor for the animation
                 mCursor.up();
@@ -1476,20 +1478,22 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         case KeyEvent.KEYCODE_DPAD_LEFT:
             if (mRTL) {
                 if (mCursor.right()) {
+                    JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                    jd.increaseMonth(1);
+                    jd.day = mCursor.getSelectedDayOfMonth();
                     other = mOtherViewCalendar;
-                    other.set(mViewCalendar);
-                    other.month += 1;
-                    other.monthDay = mCursor.getSelectedDayOfMonth();
+                    other.set(Jalali.jalaliToGregorianTime(jd));
     
                     // restore the calendar cursor for the animation
                     mCursor.left();
                 }
             } else {
                 if (mCursor.left()) {
+                    JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                    jd.decreaseMonth(1);
+                    jd.day = mCursor.getSelectedDayOfMonth();
                     other = mOtherViewCalendar;
-                    other.set(mViewCalendar);
-                    other.month -= 1;
-                    other.monthDay = mCursor.getSelectedDayOfMonth();
+                    other.set(Jalali.jalaliToGregorianTime(jd));
     
                     // restore the calendar cursor for the animation
                     mCursor.right();
@@ -1501,20 +1505,22 @@ public class MonthView extends View implements View.OnCreateContextMenuListener 
         case KeyEvent.KEYCODE_DPAD_RIGHT:
             if (mRTL) {
                 if (mCursor.left()) {
+                    JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                    jd.decreaseMonth(1);
+                    jd.day = mCursor.getSelectedDayOfMonth();
                     other = mOtherViewCalendar;
-                    other.set(mViewCalendar);
-                    other.month -= 1;
-                    other.monthDay = mCursor.getSelectedDayOfMonth();
+                    other.set(Jalali.jalaliToGregorianTime(jd));
     
                     // restore the calendar cursor for the animation
                     mCursor.right();
                 }
             } else {
                 if (mCursor.right()) {
+                    JalaliDate jd = Jalali.gregorianToJalali(mViewJalaliCalendar);
+                    jd.increaseMonth(1);
+                    jd.day = mCursor.getSelectedDayOfMonth();
                     other = mOtherViewCalendar;
-                    other.set(mViewCalendar);
-                    other.month += 1;
-                    other.monthDay = mCursor.getSelectedDayOfMonth();
+                    other.set(Jalali.jalaliToGregorianTime(jd));
     
                     // restore the calendar cursor for the animation
                     mCursor.left();
