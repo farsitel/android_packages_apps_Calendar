@@ -42,6 +42,7 @@ import android.os.Handler;
 import android.provider.Calendar.Attendees;
 import android.provider.Calendar.Calendars;
 import android.provider.Calendar.Events;
+import android.text.FriBidi;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
@@ -2492,6 +2493,12 @@ public class CalendarView extends View
             len = MAX_EVENT_TEXT_LEN;
         }
 
+        boolean textIsRTL = false;
+        FriBidi fribidi = new FriBidi(text);
+        if (fribidi.direction == FriBidi.PARAGRAPH_DIRECTION_RTL ||
+            fribidi.direction == FriBidi.PARAGRAPH_DIRECTION_WRTL)
+            textIsRTL = true;
+
         // Figure out how much space the event title will take, and create a
         // String fragment that will fit in the rectangle.  Use multiple lines,
         // if available.
@@ -2511,6 +2518,7 @@ public class CalendarView extends View
             } while (start < len);
 
             float sum = 0;
+            float lastSum = 0;
             int end = start;
             for (int ii = start; ii < len; ii++) {
                 char c = text.charAt(ii);
@@ -2519,6 +2527,7 @@ public class CalendarView extends View
                 // position.
                 if (c == ' ') {
                     end = ii;
+                    lastSum = sum;
                 }
                 sum += mCharWidths[ii];
                 // If adding this character would exceed the width and this
@@ -2544,11 +2553,16 @@ public class CalendarView extends View
             // If sum <= width, then we can fit the rest of the text on
             // this line.
             if (sum <= width) {
+                lastSum = sum;
                 fragment = text.substring(start, len);
                 start = len;
             }
 
-            canvas.drawText(fragment, rf.left + 1, top, p);
+            if (textIsRTL) {
+                canvas.drawText(fragment, rf.right - lastSum - 1, top, p);
+            } else {
+                canvas.drawText(fragment, rf.left + 1, top, p);
+            }
 
             top += lineHeight;
             height -= lineHeight;
