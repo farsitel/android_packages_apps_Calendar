@@ -3119,12 +3119,13 @@ public class CalendarView extends View
      * @return true if the touch position is valid
      */
     private boolean setSelectionFromPosition(int x, int y) {
+        if (mRTL)
+            x = mViewWidth - x;
+
         if (x < mHoursWidth) {
             return false;
         }
 
-        if (mRTL)
-        	x = mViewWidth - x;
         int day = (x - mHoursWidth) / (mCellWidth + DAY_GAP);
         if (day >= mNumDays) {
             day = mNumDays - 1;
@@ -3214,6 +3215,9 @@ public class CalendarView extends View
 
         // Adjust y for the scrollable bitmap
         y += mViewStartY - mFirstCell;
+
+        if (mRTL)
+            x = mViewWidth - x;
 
         // Use a region around (x,y) for the selection region
         Rect region = mRect;
