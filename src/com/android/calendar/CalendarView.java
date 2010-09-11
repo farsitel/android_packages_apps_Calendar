@@ -3174,6 +3174,11 @@ public class CalendarView extends View
         int top = 0;
         mSelectedEvent = null;
 
+        if (mRTL) {
+            // mirror x inside the cell
+            x = left + (cellWidth - (x - left));
+        }
+
         mSelectedEvents.clear();
         if (mSelectionAllDay) {
             float yDistance;
@@ -3221,9 +3226,6 @@ public class CalendarView extends View
 
         // Adjust y for the scrollable bitmap
         y += mViewStartY - mFirstCell;
-
-        if (mRTL)
-            x = mViewWidth - x;
 
         // Use a region around (x,y) for the selection region
         Rect region = mRect;
