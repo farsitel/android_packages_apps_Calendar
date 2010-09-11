@@ -2519,6 +2519,7 @@ public class CalendarView extends View
 
             float sum = 0;
             float lastSum = 0;
+            float lastCharWidth = 0;
             int end = start;
             for (int ii = start; ii < len; ii++) {
                 char c = text.charAt(ii);
@@ -2530,6 +2531,7 @@ public class CalendarView extends View
                     lastSum = sum;
                 }
                 sum += mCharWidths[ii];
+                lastCharWidth = mCharWidths[ii];
                 // If adding this character would exceed the width and this
                 // isn't the last line, then break the line at the previous
                 // word.  If there was no previous word, then break this word.
@@ -2556,6 +2558,10 @@ public class CalendarView extends View
                 lastSum = sum;
                 fragment = text.substring(start, len);
                 start = len;
+            }
+
+            if (lastSum == 0) {
+                lastSum = sum - lastCharWidth;
             }
 
             if (textIsRTL) {
