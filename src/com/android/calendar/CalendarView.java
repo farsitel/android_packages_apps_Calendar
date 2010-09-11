@@ -1842,8 +1842,8 @@ public class CalendarView extends View
         r.top = mBannerPlusMargin;
         r.bottom = r.top + mAllDayHeight + ALLDAY_TOP_MARGIN;
         if (mRTL) {
-	        r.left = mViewWidth - (r.left + mNumDays * (mCellWidth + DAY_GAP));
-	        r.right = mViewWidth - mHoursWidth;
+            r.right = mViewWidth - mHoursWidth;
+            r.left = r.left - mNumDays * (mCellWidth + DAY_GAP);
         } else {
 	        r.left = mHoursWidth;
 	        r.right = r.left + mNumDays * (mCellWidth + DAY_GAP);
