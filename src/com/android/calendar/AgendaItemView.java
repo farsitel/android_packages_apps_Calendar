@@ -45,7 +45,11 @@ public class AgendaItemView extends RelativeLayout {
         if (holder != null) {
             /* Draw vertical color stripe */
             mPaint.setColor(holder.calendarColor);
-            canvas.drawRect(0, 0, 5, getHeight(), mPaint);
+            if (mRTL) {
+                canvas.drawRect(getWidth() - 5, 0, getWidth(), getHeight(), mPaint);
+            } else {
+                canvas.drawRect(0, 0, 5, getHeight(), mPaint);
+            }
 
             /* Gray out item if the event was declined */
             if (holder.overLayColor != 0) {
