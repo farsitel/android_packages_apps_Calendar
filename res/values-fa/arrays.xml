@@ -19,57 +19,102 @@
          These must be kept in sync with the reminder_minutes_values array.
     -->
     <string-array name="reminder_minutes_labels">
-        <item>۵ دقیقه</item>
-        <item>۱۰ دقیقه</item>
-        <item>۱۵  دقیقه</item>
-        <item>۲۰ دقیقه</item>
-        <item>۲۵ دقیقه</item>
-        <item>۳۰  دقیقه</item>
-        <item>۴۵  دقیقه</item>
-        <item>۱ ساعت</item>
-        <item>۲ ساعت</item>
-        <item>۳ ساعت</item>
-        <item>۱۲ ساعت</item>
-        <item>۲۴ ساعت</item>
-        <item>۲ روز</item>
-        <item>۱ هفته</item>
+        <item>‏۱ دقیقه</item>
+        <item>‏۵ دقیقه</item>
+        <item>‏۱۰ دقیقه</item>
+        <item>‏۱۵ دقیقه</item>
+        <item>‏۲۰ دقیقه</item>
+        <item>‏۲۵ دقیقه</item>
+        <item>‏۳۰ دقیقه</item>
+        <item>‏۴۵ دقیقه</item>
+        <item>‏۱ ساعت</item>
+        <item>‏۲ ساعت</item>
+        <item>‏۳ ساعت</item>
+        <item>‏۱۲ ساعت</item>
+        <item>‏۲۴ ساعت</item>
+        <item>‏۲ روز</item>
+        <item>‏۱ هفته</item>
+    </string-array>
+
+    <string-array name="reminder_minutes_values" translatable="false">
+        <item>"1"</item>
+        <item>"5"</item>
+        <item>"10"</item>
+        <item>"15"</item>
+        <item>"20"</item>
+        <item>"25"</item>
+        <item>"30"</item>
+        <item>"45"</item>
+        <item>"60"</item>
+        <item>"120"</item>
+        <item>"180"</item>
+        <item>"720"</item>
+        <item>"1440"</item>
+        <item>"2880"</item>
+        <item>"10080"</item>
     </string-array>
 
     <string-array name="preferences_default_reminder_labels">
         <item>هیچکدام</item>
-        <item>۵ دقیقه</item>
-        <item>۱۰ دقیقه</item>
-        <item>۱۵ دقیقه</item>
-        <item>۲۰ دقیقه</item>
-        <item>۲۵ دقیقه</item>
-        <item>۳۰ دقیقه</item>
-        <item>۴۵ دقیقه</item>
-        <item>۱ ساعت</item>
-        <item>۲ ساعت</item>
-        <item>۳ ساعت</item>
-        <item>۱۲ ساعت</item>
-        <item>۲۴ ساعت</item>
-        <item>۲ روز</item>
-        <item>۱ روز</item>
+        <item>‏۱ دقیقه</item>
+        <item>‏۵ دقیقه</item>
+        <item>‏۱۰ دقیقه</item>
+        <item>‏۱۵ دقیقه</item>
+        <item>‏۲۰ دقیقه</item>
+        <item>‏۲۵ دقیقه</item>
+        <item>‏۳۰ دقیقه</item>
+        <item>‏۴۵ دقیقه</item>
+        <item>‏۱ ساعت</item>
+        <item>‏۲ ساعت</item>
+        <item>‏۳ ساعت</item>
+        <item>‏۱۲ ساعت</item>
+        <item>‏۲۴ ساعت</item>
+        <item>‏۲ روز</item>
+        <item>‏۱ هفته</item>
+    </string-array>
+
+    <string-array name="preferences_default_reminder_values" translatable="false">
+        <item>"0"</item>
+        <item>"1"</item>
+        <item>"5"</item>
+        <item>"10"</item>
+        <item>"15"</item>
+        <item>"20"</item>
+        <item>"25"</item>
+        <item>"30"</item>
+        <item>"45"</item>
+        <item>"60"</item>
+        <item>"120"</item>
+        <item>"180"</item>
+        <item>"720"</item>
+        <item>"1440"</item>
+        <item>"2880"</item>
+        <item>"10080"</item>
     </string-array>
 
     <string-array name="preferences_alert_type_labels">
         <item>هشدار</item>
-        <item>اطلاع نوار وضعیت</item>
+        <item>خبر در نوار بالا</item>
         <item>خاموش</item>
+    </string-array>
+
+    <string-array name="preferences_alert_type_values" translatable="false">
+        <item>"0"</item>
+        <item>"1"</item>
+        <item>"2"</item>
     </string-array>
 
     <string-array name="availability">
         <item>مشغول</item>
         <item>آزاد</item>
     </string-array>
-    
+
     <string-array name="visibility">
         <item>پیش‌فرض</item>
-        <item>شخصی</item>
+        <item>خصوصی</item>
         <item>عمومی</item>
     </string-array>
-    
+
     <string-array name="ordinal_labels">
         <item>اول</item>
         <item>دوم</item>
@@ -80,7 +125,7 @@
 
     <!-- Invitation responses -->    
     <string-array name="response_labels1">
-        <item>(بدون واکنش)</item>
+        <item>‏(بدون پاسخ)</item>
         <item>بله</item>
         <item>شاید</item>
         <item>خیر</item>
@@ -95,7 +140,7 @@
     <skip />
     <string-array name="delete_repeating_labels">
         <item>فقط این رویداد</item>
-        <item>این و رویدادهای آتی</item>
+        <item>این رویداد و رویدادهای آینده</item>
         <item>همهٔ رویدادها</item>
     </string-array>
 
@@ -108,7 +153,7 @@
      -->
     <skip />
     <string-array name="delete_repeating_labels_no_selected">
-        <item>این و رویداهای آتی</item>
+        <item>این رویداد و رویدادهای آینده</item>
         <item>همهٔ رویدادها</item>
     </string-array>
 
