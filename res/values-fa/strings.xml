@@ -384,13 +384,6 @@
         <item>هرگز</item>
     </string-array>
 
-    <!-- The default vibrateWhen value, when none is set -->
-    <string translatable="false" name="prefDefault_alerts_vibrateWhen">never</string>
-    <!-- The value to use then migrating from old versions for a true vibrate setting -->
-    <string translatable="false" name="prefDefault_alerts_vibrate_true">always</string>
-    <!-- The value to use then migrating from old versions for a false vibrate setting -->
-    <string translatable="false" name="prefDefault_alerts_vibrate_false">never</string>
-
     <!-- The vibrateWhen values -->
     <string-array translatable="false" name="prefValues_alerts_vibrateWhen">
         <item>always</item>
