@@ -244,13 +244,13 @@
     <!-- This is shown at the top of the agenda view showing the range of events shown. -->
     <string name="show_older_events">نمایش رویدادها از <xliff:g id="oldest_search_range">%1$Ls</xliff:g>. برای نمایش بیشتر، صفحه را لمس کنید.</string>
     <!-- This is shown at the bottom of the agenda view showing the range of events shown. -->
-    <string name="show_newer_events">نمایش رویدادها تا <xliff:g id="newest_search_range">%1$Ls</xliff:g>. برای نمایش بیشتر صفحه را لمس کنید.</string>
+    <string name="show_newer_events">نمایش رویدادها تا <xliff:g id="newest_search_range">%1$Ls</xliff:g>. برای نمایش بیشتر، صفحه را لمس کنید.</string>
 
     <!-- ICS Import activity -->
     <skip />
     <!-- This is a abbreviation for 'Number of events' and is a label next to
          an input for the user to enter the number of events to import. -->
-    <string name="num_events">‏«تعداد رویدادها»</string>
+    <string name="num_events">‏تعداد رویدادها</string>
 
     <!-- Button labels: -->
     <skip />
@@ -370,9 +370,9 @@
     <!-- Default value for the number of reminder minutes -->
     <string name="preferences_default_reminder_default">‏۱۰</string>
 <!-- This is the title of a section in the Settings screen for "About" this application -->
-    <string name="preferences_about_title">دربارهٔ</string>
+    <string name="preferences_about_title">درباره</string>
     <!-- Build version of the application -->
-    <string name="preferences_build_version">نسخهٔ</string>
+    <string name="preferences_build_version">نسخه</string>
 
     <!-- The vibrate notification modes -->
     <string-array name="prefEntries_alerts_vibrateWhen">
