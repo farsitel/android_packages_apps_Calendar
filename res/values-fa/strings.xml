@@ -367,8 +367,6 @@
     <string name="preferences_default_reminder_title">زمان پیش‌فرض یادآور</string>
     <!-- Title of dialog for setting the default number of reminder minutes -->
     <string name="preferences_default_reminder_dialog">زمان پیش‌فرض یادآور</string>
-    <!-- Default value for the number of reminder minutes -->
-    <string name="preferences_default_reminder_default">‏۱۰</string>
 <!-- This is the title of a section in the Settings screen for "About" this application -->
     <string name="preferences_about_title">درباره</string>
     <!-- Build version of the application -->
