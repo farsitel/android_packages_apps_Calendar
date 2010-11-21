@@ -2151,8 +2151,14 @@ public class EditEvent extends Activity implements View.OnClickListener,
     }
 
     private boolean isWeekdayEvent() {
-        if (mStartTime.weekDay != Time.SUNDAY && mStartTime.weekDay != Time.SATURDAY) {
-            return true;
+        if (mJalali) {
+            if (mStartTime.weekDay != Time.FRIDAY) {
+                return true;
+            }
+        } else {
+            if (mStartTime.weekDay != Time.SUNDAY && mStartTime.weekDay != Time.SATURDAY) {
+                return true;
+            }
         }
         return false;
     }
