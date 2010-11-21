@@ -58,6 +58,7 @@ import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
+import android.text.format.Jalali;
 import android.text.format.Time;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
@@ -238,6 +239,8 @@ public class EditEvent extends Activity implements View.OnClickListener,
     private AlertDialog mNoCalendarsDialog;
     private ContentValues mInitialValues;
     private String mOwnerAccount;
+
+    private boolean mJalali = false;
 
     /**
      * If the repeating event is created on the phone and it hasn't been
@@ -603,6 +606,7 @@ public class EditEvent extends Activity implements View.OnClickListener,
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        mJalali = Jalali.isJalali(this);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.edit_event);
 
@@ -1216,25 +1220,26 @@ public class EditEvent extends Activity implements View.OnClickListener,
         repeatArray.add(String.format(format, time.format("%A")));
         recurrenceIndexes.add(REPEATS_WEEKLY_ON_DAY);
 
-        // Calculate whether this is the 1st, 2nd, 3rd, 4th, or last appearance of the given day.
-        int dayNumber = (time.monthDay - 1) / 7;
-        format = r.getString(R.string.monthly_on_day_count);
-        repeatArray.add(String.format(format, ordinals[dayNumber], days[time.weekDay]));
-        recurrenceIndexes.add(REPEATS_MONTHLY_ON_DAY_COUNT);
+        if (!mJalali) {
+            // Calculate whether this is the 1st, 2nd, 3rd, 4th, or last appearance of the given day.
+            int dayNumber = (time.monthDay - 1) / 7;
+            format = r.getString(R.string.monthly_on_day_count);
+            repeatArray.add(String.format(format, ordinals[dayNumber], days[time.weekDay]));
+            recurrenceIndexes.add(REPEATS_MONTHLY_ON_DAY_COUNT);
 
-        format = r.getString(R.string.monthly_on_day);
-        repeatArray.add(String.format(format, time.monthDay));
-        recurrenceIndexes.add(REPEATS_MONTHLY_ON_DAY);
+            format = r.getString(R.string.monthly_on_day);
+            repeatArray.add(String.format(format, time.monthDay));
+            recurrenceIndexes.add(REPEATS_MONTHLY_ON_DAY);
 
-        long when = time.toMillis(false);
-        format = r.getString(R.string.yearly);
-        int flags = 0;
-        if (DateFormat.is24HourFormat(this)) {
-            flags |= DateUtils.FORMAT_24HOUR;
+            long when = time.toMillis(false);
+            format = r.getString(R.string.yearly);
+            int flags = 0;
+            if (DateFormat.is24HourFormat(this)) {
+                flags |= DateUtils.FORMAT_24HOUR;
+            }
+            repeatArray.add(String.format(format, DateUtils.formatDateTime(this, when, flags)));
+            recurrenceIndexes.add(REPEATS_YEARLY);
         }
-        repeatArray.add(String.format(format, DateUtils.formatDateTime(this, when, flags)));
-        recurrenceIndexes.add(REPEATS_YEARLY);
-
         if (isCustomRecurrence) {
             repeatArray.add(r.getString(R.string.custom));
             recurrenceIndexes.add(REPEATS_CUSTOM);
@@ -1934,14 +1939,27 @@ public class EditEvent extends Activity implements View.OnClickListener,
         } else if (selection == REPEATS_EVERY_WEEKDAY) {
             mEventRecurrence.freq = EventRecurrence.WEEKLY;
             int dayCount = 5;
+            if (mJalali) {
+                // we have 6 work days in Jalali, instead of 5.
+                dayCount++;
+            }
             int[] byday = new int[dayCount];
             int[] bydayNum = new int[dayCount];
 
-            byday[0] = EventRecurrence.MO;
-            byday[1] = EventRecurrence.TU;
-            byday[2] = EventRecurrence.WE;
-            byday[3] = EventRecurrence.TH;
-            byday[4] = EventRecurrence.FR;
+            if (mJalali) {
+                byday[0] = EventRecurrence.SA;
+                byday[1] = EventRecurrence.SU;
+                byday[2] = EventRecurrence.MO;
+                byday[3] = EventRecurrence.TU;
+                byday[4] = EventRecurrence.WE;
+                byday[5] = EventRecurrence.TH;
+            } else {
+                byday[0] = EventRecurrence.MO;
+                byday[1] = EventRecurrence.TU;
+                byday[2] = EventRecurrence.WE;
+                byday[3] = EventRecurrence.TH;
+                byday[4] = EventRecurrence.FR;
+            }
             for (int day = 0; day < dayCount; day++) {
                 bydayNum[day] = 0;
             }
@@ -2113,6 +2131,9 @@ public class EditEvent extends Activity implements View.OnClickListener,
             }
             break;
         case EventRecurrence.MONTHLY:
+            if (mJalali) {
+                return true;
+            }
             if (mEventRecurrence.repeatsMonthlyOnDayCount()) {
                 return false;
             } else if (mEventRecurrence.bydayCount == 0 && mEventRecurrence.bymonthdayCount == 1) {
@@ -2120,6 +2141,9 @@ public class EditEvent extends Activity implements View.OnClickListener,
             }
             break;
         case EventRecurrence.YEARLY:
+            if (mJalali) {
+                return true;
+            }
             return false;
         }
 
