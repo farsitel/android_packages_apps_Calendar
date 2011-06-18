@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2011 Iranian Supreme Council of ICT, The FarsiTel Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -345,6 +346,7 @@ public class CalendarView extends View
     private String mDateRange;
     private TextView mTitleTextView;
 
+//    private boolean mRTL;
     private boolean mJalali;
     private int mJalaliMonthLength;
     private JalaliDate mJalaliDate;
@@ -392,6 +394,14 @@ public class CalendarView extends View
         
         mLastPopupEventID = INVALID_EVENT_ID;
 
+//        String lang = Locale.getDefault().getLanguage();
+//        String country = Locale.getDefault().getCountry();
+//        if (("fa".equals(lang) && ! "TJ".equals(country))
+//            || ("az".equals(lang) && "IR".equals(country))
+//            || "ar".equals(lang)
+//            || "he".equals(lang)) {
+//            mRTL = true;
+//        }
         mJalali = Jalali.isJalali(activity);
         mPersianDigits = "fa".equals(Locale.getDefault().getLanguage());
 
